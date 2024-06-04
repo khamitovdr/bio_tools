@@ -55,7 +55,7 @@ class SerialConnection:
     def create_serial_connection(self):
         """Creates a serial connection with the specified parameters"""
         self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout_sec)
-        sleep(2)
+        sleep(3)
 
     @staticmethod
     def _restore_connection(method: Callable) -> Callable:
@@ -73,6 +73,26 @@ class SerialConnection:
         return wrapper
 
     @_restore_connection
+    def write_to_serial_port(self, data_to_send: list[int]) -> None:
+        """Writes data to the serial port
+
+        :param data_to_send: The data to send to the serial port
+        """
+        bytes_to_send = bytes(data_to_send)
+        self.serial.write(bytes_to_send)
+        print("Bytes sent successfully.")
+
+    @_restore_connection
+    def read_from_serial_port(self, response_bytes: int) -> bytes:
+        """Reads data from the serial port
+
+        :param response_bytes: The number of bytes to read from the serial port
+
+        :returns: The response from the serial port
+        """
+        response = self.serial.read(response_bytes)
+        return response
+
     def communicate_with_serial_port(self, data_to_send: list[int], response_bytes: int) -> bytes:
         """Communicates with the serial port by sending data and receiving a response
 
@@ -81,19 +101,12 @@ class SerialConnection:
 
         :returns: The response from the serial port
         """
-        bytes_to_send = bytes(data_to_send)
-        while True:
-            self.serial.write(bytes_to_send)
-            response = self.serial.read(response_bytes)
-            if len(response) != response_bytes:
-                print("Timeout occurred. Retrying...")
-                continue
+        self.write_to_serial_port(data_to_send)
+        response = self.read_from_serial_port(response_bytes)
+        return response
 
-            return response
-
-    @_restore_connection
-    def write_to_serial_port(self, data_to_send: list[int]) -> None:
-        """Writes data to the serial port
+    def __del__(self):
+        self.serial.close()
 
         :param data_to_send: The data to send to the serial port
         """
