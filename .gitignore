@@ -159,3 +159,4 @@ cython_debug/
 # Config files
 pyproject.toml
 mypy.ini
+*sandbox*
