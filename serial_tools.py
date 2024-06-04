@@ -1,10 +1,15 @@
 import glob
+import json
 import sys
 from functools import wraps
 from time import sleep
-from typing import Callable
+from typing import Callable, Optional
 
 import serial
+
+DEVICE_INTERFACES_PATH = "./device_interfaces.json"
+with open(DEVICE_INTERFACES_PATH, "r") as file:
+    DEVICE_INTERFACES = json.load(file)
 
 
 def get_serial_ports() -> list[str]:
@@ -108,8 +113,28 @@ class SerialConnection:
     def __del__(self):
         self.serial.close()
 
-        :param data_to_send: The data to send to the serial port
-        """
-        bytes_to_send = bytes(data_to_send)
-        self.serial.write(bytes_to_send)
-        print("Bytes sent successfully.")
+
+def identify_device(port: str) -> Optional[SerialConnection]:
+    """Identifies the device connected to the specified serial port
+
+    :param port: The serial port name to identify the device connected to
+
+    :returns: The device interface of the device connected to the specified serial port, None otherwise
+    """
+    RESPONSE_LENGTH = 4
+    serial_connection = SerialConnection(port)
+    for device_interface in DEVICE_INTERFACES:
+        identification_sequence = [int(i) for i in device_interface["identification_signal"]]
+        print(f"Identifying device interface: {device_interface['type']}")
+        print(f"Identification sequence: {identification_sequence}")
+        response = serial_connection.communicate_with_serial_port(identification_sequence, RESPONSE_LENGTH)
+        print(f"Response received: {response!r}")
+        print(f"Response received: {list(response)}")
+
+        if len(response) == RESPONSE_LENGTH and list(response)[0] == int(
+            device_interface["first_identification_response_byte"]
+        ):
+            print(f"Device interface found: {device_interface['type']}")
+            return serial_connection
+
+    return None
