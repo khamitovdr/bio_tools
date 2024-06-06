@@ -77,14 +77,34 @@
         "first_identification_response_byte": 70,
         "commands": {
             "get_temperature": {
-                "request": "76, 0, 0, 0, 0",
+                "request": [
+                    76,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "response_len": 4,
                 "response": "a1, a2, a3, a4"
             },
             "start_measurement": {
-                "request": "78, 4, 0, 0, 0"
+                "request": [
+                    78,
+                    4,
+                    0,
+                    0,
+                    0
+                ]
             },
             "get_measurement_result": {
-                "request": "79, 4, 0, 0, 0",
+                "request": [
+                    79,
+                    4,
+                    0,
+                    0,
+                    0
+                ],
+                "response_len": 4,
                 "response": "a1, a2, a3, a4"
             }
         }
