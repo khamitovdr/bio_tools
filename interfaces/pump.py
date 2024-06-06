@@ -47,6 +47,7 @@ class Pump(SerialConnection):
 
         :param flow_rate: The flow rate to set in mL/min
         """
+        logger.debug(f"Setting flow rate to {flow_rate:.3f} mL/min")
         speed_param = self._compute_speed_param_from_flow(flow_rate)
         data_to_send = [10, 0, 1, speed_param, 0]
         self.write_to_serial_port(data_to_send)
@@ -61,6 +62,8 @@ class Pump(SerialConnection):
 
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
         direction_byte = 16 if direction == "left" else 17
+
+        logger.debug(f"Pouring in {volume:.3f} mL at flow rate {flow_rate:.3f} mL/min")
 
         self._set_flow_rate(flow_rate)
 
@@ -77,6 +80,8 @@ class Pump(SerialConnection):
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
         direction_byte = 11 if direction == "left" else 12
 
+        logger.debug(f"Starting continuous rotation at flow rate {flow_rate:.3f} mL/min")
+
         speed_param = self._compute_speed_param_from_flow(flow_rate)
 
         data_to_send = [direction_byte, 111, 1, speed_param, 0]
@@ -84,4 +89,5 @@ class Pump(SerialConnection):
 
     def stop_continuous_rotation(self):
         """Stops the continuous rotation of the pump"""
+        logger.debug("Stopping continuous rotation")
         self.pour_in_volume(0, 1)
