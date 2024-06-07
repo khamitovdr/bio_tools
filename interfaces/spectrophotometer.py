@@ -1,4 +1,5 @@
-from typing import Optional
+from time import sleep
+from typing import Optional, Union
 
 from loguru import logger
 
@@ -9,7 +10,7 @@ from loader import device_interfaces
 class Spectrophotometer(SerialConnection):
     """Class to handle communication with a spectrophotometer connected to a serial port"""
 
-    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: float = 1.0):
+    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: Union[int, float] = 1.0):
         self.interface = device_interfaces.spectrophotometer
         super(Spectrophotometer, self).__init__(port, baudrate, timeout_sec)
 
@@ -58,9 +59,11 @@ class Spectrophotometer(SerialConnection):
         """
         logger.debug("Measuring absorbance")
         self._send_start_measurement_command()
-        while True:
-            absorbance = self._get_absorbance()
-            if absorbance is not None:
-                return absorbance
+        logger.debug("Absorbance not ready yet, waiting...")
+        sleep(4)
+        absorbance = self._get_absorbance()
+        if absorbance is None:
+            logger.error("Absorbance could not be measured")
+            raise Exception("Absorbance could not be measured")
 
-            logger.debug("Absorbance not ready yet, waiting...")
+        return absorbance
