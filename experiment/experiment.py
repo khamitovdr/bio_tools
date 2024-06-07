@@ -1,5 +1,6 @@
 import inspect
 import time
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any, Callable, Optional, get_type_hints
 
@@ -15,13 +16,12 @@ class Action:
         self.end_time: Optional[datetime] = None
         logger.debug(f"Action created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
 
-    def execute(self) -> Any:
+    def execute(self):
         self.start_time = datetime.now()
         logger.debug(f"Executing action: {self.func.__name__}")
-        result = self.func(*self.args, **self.kwargs)
+        self.func(*self.args, **self.kwargs)
         self.end_time = datetime.now()
         logger.debug(f"Action completed: {self.func.__name__}")
-        return result
 
     def is_completed(self) -> bool:
         return self.end_time is not None and self.start_time is not None
@@ -31,6 +31,21 @@ class Action:
             raise ValueError("Action did not complete yet")
 
         return self.end_time - self.start_time  # type: ignore
+
+
+class Measurement(Action):
+    def __init__(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+        super().__init__(func, *args, **kwargs)
+        self.measured_value = measured_value
+        logger.debug(f"Measurement created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
+
+    def execute(self) -> Any:
+        self.start_time = datetime.now()
+        logger.debug(f"Executing measurement: {self.func.__name__}")
+        result = self.func(*self.args, **self.kwargs)
+        self.end_time = datetime.now()
+        logger.debug(f"Measurement completed: {self.func.__name__}")
+        return result
 
 
 class WaitAction:
@@ -43,12 +58,18 @@ class Experiment:
     def __init__(self):
         self.actions: list[Action | WaitAction] = []
         self.current_time: Optional[datetime] = None
+        self.measurements: dict[str, list[tuple[datetime, Any]]] = defaultdict(list)
         logger.debug("Experiment created")
 
     def add_action(self, func: Callable, *args: Any, **kwargs: Any):
         self._validate_types(func, *args, **kwargs)
         self.actions.append(Action(func, *args, **kwargs))
         logger.debug(f"Action added to experiment: {func.__name__}")
+
+    def add_measurement(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+        self._validate_types(func, *args, **kwargs)
+        self.actions.append(Measurement(func, measured_value, *args, **kwargs))
+        logger.debug(f"Measurement added to experiment: {func.__name__}")
 
     def add_wait(self, seconds: float):
         self.actions.append(WaitAction(seconds))
@@ -59,7 +80,11 @@ class Experiment:
         logger.debug(f"Experiment started. Start time: {self.current_time}")
         for step, action in enumerate(self.actions):
             logger.debug(f"Step {step + 1} from {len(self.actions)}")
-            if isinstance(action, Action):
+            if isinstance(action, Measurement):
+                logger.debug(f"Executing measurement: {action.func.__name__}")
+                result = action.execute()
+                self.measurements[action.measured_value].append((datetime.now(), result))
+            elif isinstance(action, Action):
                 logger.debug(f"Executing action: {action.func.__name__}")
                 action.execute()
             elif isinstance(action, WaitAction):
@@ -85,17 +110,3 @@ class Experiment:
             expected_type = type_hints.get(name)
             if expected_type and not isinstance(value, expected_type):
                 raise TypeError(f"Argument '{name}' is expected to be of type {expected_type}, but got {type(value)}")
-
-
-# pump1 = Pump("COM1")
-# pump2 = Pump("COM2")
-# spectrophotometer = Spectrophotometer("COM3")
-
-# experiment = Experiment()
-# experiment.add_action(pump1.pour_in_volume, 10.0, 1.0, "left")
-# experiment.add_wait(5.0)
-# experiment.add_action(pump2.pour_in_volume, 5.0, 0.5, "right")
-# experiment.add_wait(5.0)
-# experiment.add_action(spectrophotometer.measure_absorbance)
-
-# experiment.run()
