@@ -1,3 +1,5 @@
+from typing import Union
+
 from loguru import logger
 
 from interfaces.serial_connection import SerialConnection
@@ -7,7 +9,7 @@ from loader import device_interfaces
 class Pump(SerialConnection):
     """Class to handle communication with a pump connected to a serial port"""
 
-    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: float = 1.0):
+    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: Union[int, float] = 1.0):
         self.interface = device_interfaces.pump
         super(Pump, self).__init__(port, baudrate, timeout_sec)
         self._compute_calibration_volume()
@@ -20,7 +22,7 @@ class Pump(SerialConnection):
         self._calibration_volume = self._bytes_to_int(identification_response[1:]) / 10**5
         logger.debug(f"Calibration volume computed: {self._calibration_volume:.3f}")
 
-    def _compute_speed_param_from_flow(self, flow: float) -> int:
+    def _compute_speed_param_from_flow(self, flow: Union[int, float]) -> int:
         """Computes the speed parameter from the real speed of the pump
 
         :param flow: The real flow rate of the pump in mL/min
@@ -31,7 +33,7 @@ class Pump(SerialConnection):
         speed_param = int(29 / flow)
         return speed_param
 
-    def _compute_step_volume_bytes(self, volume: float) -> list[int]:
+    def _compute_step_volume_bytes(self, volume: Union[int, float]) -> list[int]:
         """Computes the step volume in bytes to send to the pump
 
         :param volume: The volume to set in mL
@@ -42,7 +44,7 @@ class Pump(SerialConnection):
         step_volume_bytes = self._int_to_bytes(step_volume, 4)
         return step_volume_bytes
 
-    def _set_flow_rate(self, flow_rate: float):
+    def _set_flow_rate(self, flow_rate: Union[int, float]):
         """Sets the flow rate of the pump
 
         :param flow_rate: The flow rate to set in mL/min
@@ -52,7 +54,7 @@ class Pump(SerialConnection):
         data_to_send = [10, 0, 1, speed_param, 0]
         self.write_to_serial_port(data_to_send)
 
-    def pour_in_volume(self, volume: float, flow_rate: float, direction: str = "left"):
+    def pour_in_volume(self, volume: Union[int, float], flow_rate: Union[int, float], direction: str = "left"):
         """Pours in the specified volume of liquid
 
         :param volume: The volume to pour in mL
@@ -70,7 +72,7 @@ class Pump(SerialConnection):
         data_to_send = [direction_byte] + self._compute_step_volume_bytes(volume)
         self.write_to_serial_port(data_to_send)
 
-    def start_continuous_rotation(self, flow_rate: float, direction: str = "left"):
+    def start_continuous_rotation(self, flow_rate: Union[int, float], direction: str = "left"):
         """Starts the continuous rotation of the pump
 
         :param flow_rate: The flow rate of the pump in mL/min
