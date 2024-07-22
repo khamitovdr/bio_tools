@@ -6,9 +6,10 @@ from loguru import logger
 
 
 def get_serial_ports() -> list[str]:
-    """Lists serial port names on the system
+    """Lists serial port names on the system.
 
     :returns: A list of the serial ports available on the system
+
     :raises EnvironmentError: On unsupported or unknown platforms
     """
     if sys.platform.startswith("win"):

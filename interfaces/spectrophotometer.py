@@ -1,5 +1,4 @@
 from time import sleep
-from typing import Optional, Union
 
 from loguru import logger
 
@@ -8,9 +7,15 @@ from loader import device_interfaces
 
 
 class Spectrophotometer(SerialConnection):
-    """Class to handle communication with a spectrophotometer connected to a serial port"""
+    """Class to handle communication with a spectrophotometer connected to a serial port."""
 
-    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: Union[int, float] = 1.0):
+    def __init__(self, port: str, baudrate: int = 9600, timeout_sec: int | float = 1.0):
+        """Initializes the spectrophotometer object.
+
+        :param port: The serial port to connect to
+        :param baudrate: The baudrate of the serial connection. Defaults to 9600
+        :param timeout_sec: The timeout of the serial connection to respond in seconds. Defaults to 1.0
+        """
         self.interface = device_interfaces.spectrophotometer
         super(Spectrophotometer, self).__init__(port, baudrate, timeout_sec)
 
@@ -30,12 +35,12 @@ class Spectrophotometer(SerialConnection):
         return temperature
 
     def _send_start_measurement_command(self):
-        """Sends the command to start the measurement"""
+        """Sends the command to start the measurement."""
         self.write_to_serial_port(self.interface.commands.start_measurement.request)
         logger.debug("Start measurement command sent")
 
-    def _get_absorbance(self) -> Optional[float]:
-        """Gets the absorbance of the sample
+    def _get_absorbance(self) -> float | None:
+        """Gets the absorbance of the sample.
 
         :returns: The absorbance of the sample
         """
@@ -53,7 +58,7 @@ class Spectrophotometer(SerialConnection):
         return absorbance
 
     def measure_absorbance(self) -> float:
-        """Measures the absorbance of the sample
+        """Measures the absorbance of the sample.
 
         :returns: The absorbance of the sample
         """

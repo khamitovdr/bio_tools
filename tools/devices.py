@@ -1,5 +1,3 @@
-from typing import Optional
-
 from loguru import logger
 
 from interfaces import Pump, SerialConnection, Spectrophotometer
@@ -7,8 +5,8 @@ from loader import device_interfaces
 from tools.serial_port import get_serial_ports
 
 
-def identify_device(port: str) -> Optional[str]:
-    """Identifies the device connected to the specified serial port
+def identify_device(port: str) -> str | None:
+    """Identifies the device connected to the specified serial port.
 
     :param port: The serial port name to identify the device connected to
 
@@ -33,7 +31,7 @@ def identify_device(port: str) -> Optional[str]:
 
 
 def get_connected_devices() -> tuple[list[Pump], list[Spectrophotometer]]:
-    """Identifies the devices connected to the serial ports on the system
+    """Identifies the devices connected to the serial ports on the system.
 
     :returns: A tuple containing the list of connected pumps and spectrophotometers
     """

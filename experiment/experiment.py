@@ -2,21 +2,34 @@ import inspect
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, Callable, Optional, get_type_hints
+from typing import Any, Callable, get_type_hints
 
 from loader import logger
 
 
 class Action:
-    def __init__(self, func: Callable, *args: Any, **kwargs: Any):
+    """Class to define an action to be executed in an experiment.
+
+    The action can be executed with the `execute` method, which will call the function with the provided arguments.
+    The action keeps track of the time it was started and completed.
+    """
+
+    def __init__(self, func: Callable, *args: Any, **kwargs: Any) -> None:
+        """Initialize the action with the function to be executed and the arguments to be passed to it.
+
+        :param func: The function to be executed
+        :param args: The positional arguments to be passed to the function
+        :param kwargs: The keyword arguments to be passed to the function
+        """
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.start_time: Optional[datetime] = None
-        self.end_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
+        self.end_time: datetime | None = None
         logger.debug(f"Action created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
 
-    def execute(self):
+    def execute(self) -> None:
+        """Execute the action by calling the function with the provided arguments and tracking the start and end time."""
         self.start_time = datetime.now()
         logger.debug(f"Executing action: {self.func.__name__}")
         self.func(*self.args, **self.kwargs)
@@ -24,9 +37,19 @@ class Action:
         logger.debug(f"Action completed: {self.func.__name__}")
 
     def is_completed(self) -> bool:
+        """Check if the action has been completed.
+
+        :return: True if the action has been completed, False otherwise
+        """
         return self.end_time is not None and self.start_time is not None
 
     def duration(self) -> timedelta:
+        """Get the duration of the action.
+
+        :return: The duration of the action as a timedelta
+
+        :raises ValueError: If the action has not been completed yet
+        """
         if not self.is_completed():
             raise ValueError("Action did not complete yet")
 
@@ -34,12 +57,28 @@ class Action:
 
 
 class Measurement(Action):
+    """Class to define a measurement to be executed in an experiment.
+
+    The measurement is a special type of action that also stores the measured value name and the measurement result.
+    """
+
     def __init__(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+        """Initialize the measurement with the function to be executed, the measured value name, and the arguments.
+
+        :param func: The function to be executed
+        :param measured_value: The name of the measured value
+        :param args: The positional arguments to be passed to the function
+        :param kwargs: The keyword arguments to be passed to the function
+        """
         super().__init__(func, *args, **kwargs)
         self.measured_value = measured_value
         logger.debug(f"Measurement created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
 
     def execute(self) -> Any:
+        """Execute the measurement by calling the function with the provided arguments and tracking the start and end time.
+
+        :return: The result of the measurement
+        """
         self.start_time = datetime.now()
         logger.debug(f"Executing measurement: {self.func.__name__}")
         result = self.func(*self.args, **self.kwargs)
@@ -49,33 +88,76 @@ class Measurement(Action):
 
 
 class WaitAction:
+    """Class to define a wait action to be executed in an experiment.
+
+    The wait action is a special type of action that pauses the execution of the experiment for a given amount of time.
+    If some action takes time to be executed, the wait time should be not less than the time taken by the action.
+    """
+
     def __init__(self, seconds: float):
+        """Initialize the wait action with the number of seconds to wait.
+
+        :param seconds: The number of seconds to wait
+        """
         self.wait_time: timedelta = timedelta(seconds=seconds)
         logger.debug(f"Wait action created: {seconds} seconds")
 
 
 class Experiment:
+    """Class to define an experiment with actions and measurements to be executed in sequence.
+
+    The experiment can be run with the `run` method, which will execute each action in sequence.
+    The experiment keeps track of the time each action was executed and the measurements taken.
+    """
+
     def __init__(self):
+        """Initialize the experiment with an empty list of actions and measurements"""
         self.actions: list[Action | WaitAction] = []
-        self.current_time: Optional[datetime] = None
         self.measurements: dict[str, list[tuple[datetime, Any]]] = defaultdict(list)
+        self.current_time: datetime | None = (
+            None  # Time to keep track of the experiment progress. Initializes on start.
+        )
         logger.debug("Experiment created")
 
     def add_action(self, func: Callable, *args: Any, **kwargs: Any):
+        """Add an action to the experiment.
+
+        The action will be executed in sequence when the experiment is run.
+
+        :param func: The function to be executed
+        :param args: The positional arguments to be passed to the function
+        :param kwargs: The keyword arguments to be passed to the function
+        """
         self._validate_types(func, *args, **kwargs)
         self.actions.append(Action(func, *args, **kwargs))
         logger.debug(f"Action added to experiment: {func.__name__}")
 
     def add_measurement(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+        """Add a measurement to the experiment.
+
+        The measurement will be executed in sequence when the experiment is run, and the result will be stored.
+
+        :param func: The function to be executed
+        :param measured_value: The name of the measured value
+        :param args: The positional arguments to be passed to the function
+        :param kwargs: The keyword arguments to be passed to the function
+        """
         self._validate_types(func, *args, **kwargs)
         self.actions.append(Measurement(func, measured_value, *args, **kwargs))
         logger.debug(f"Measurement added to experiment: {func.__name__}")
 
     def add_wait(self, seconds: float):
+        """Add a wait action to the experiment.
+
+        The wait action will pause the execution of the experiment for the given amount of time.
+
+        :param seconds: The number of seconds to wait
+        """
         self.actions.append(WaitAction(seconds))
         logger.debug(f"Wait action added to experiment: {seconds} seconds")
 
     def run(self):
+        """Run the experiment by executing each action in sequence."""
         self.current_time = datetime.now()
         logger.debug(f"Experiment started. Start time: {self.current_time}")
         for step, action in enumerate(self.actions):
@@ -102,6 +184,14 @@ class Experiment:
                 raise ValueError(f"Unknown action type: {type(action)}")
 
     def _validate_types(self, func: Callable, *args: Any, **kwargs: Any):
+        """Validate that the arguments passed to the function are of the correct type.
+
+        :param func: The function to validate the arguments for
+        :param args: The positional arguments to validate
+        :param kwargs: The keyword arguments to validate
+
+        :raises TypeError: If any argument is not of the expected type according to the type hints of the function
+        """
         type_hints = get_type_hints(func)
         sig = inspect.signature(func)
         bound_arguments = sig.bind_partial(*args, **kwargs).arguments
@@ -109,4 +199,5 @@ class Experiment:
         for name, value in bound_arguments.items():
             expected_type = type_hints.get(name)
             if expected_type and not isinstance(value, expected_type):
-                raise TypeError(f"Argument '{name}' is expected to be of type {expected_type}, but got {type(value)}")
+                msg = f"Argument '{name}' is expected to be of type {expected_type}, but got {type(value)}"
+                raise TypeError(msg)
