@@ -62,7 +62,7 @@ class Measurement(Action):
     The measurement is a special type of action that also stores the measured value name and the measurement result.
     """
 
-    def __init__(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+    def __init__(self, func: Callable, measured_value_name: str, *args: Any, **kwargs: Any):
         """Initialize the measurement with the function to be executed, the measured value name, and the arguments.
 
         :param func: The function to be executed
@@ -71,7 +71,7 @@ class Measurement(Action):
         :param kwargs: The keyword arguments to be passed to the function
         """
         super().__init__(func, *args, **kwargs)
-        self.measured_value = measured_value
+        self.measured_value = measured_value_name
         logger.debug(f"Measurement created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
 
     def execute(self) -> Any:
@@ -132,7 +132,7 @@ class Experiment:
         self.actions.append(Action(func, *args, **kwargs))
         logger.debug(f"Action added to experiment: {func.__name__}")
 
-    def add_measurement(self, func: Callable, measured_value: str, *args: Any, **kwargs: Any):
+    def add_measurement(self, func: Callable, measured_value_name: str, *args: Any, **kwargs: Any):
         """Add a measurement to the experiment.
 
         The measurement will be executed in sequence when the experiment is run, and the result will be stored.
@@ -143,7 +143,7 @@ class Experiment:
         :param kwargs: The keyword arguments to be passed to the function
         """
         self._validate_types(func, *args, **kwargs)
-        self.actions.append(Measurement(func, measured_value, *args, **kwargs))
+        self.actions.append(Measurement(func, measured_value_name, *args, **kwargs))
         logger.debug(f"Measurement added to experiment: {func.__name__}")
 
     def add_wait(self, seconds: float):
