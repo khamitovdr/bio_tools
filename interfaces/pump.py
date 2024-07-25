@@ -15,7 +15,7 @@ class Pump(SerialConnection):
         :param timeout_sec: The timeout of the serial connection to respond in seconds. Defaults to 1.0
         """
         self.interface = device_interfaces.pump
-        self.flow_rate: int | float | None = None
+        self.default_flow_rate: int | float | None = None
         super(Pump, self).__init__(port, baudrate, timeout_sec)
         self._compute_calibration_volume()
 
@@ -50,8 +50,15 @@ class Pump(SerialConnection):
         step_volume_bytes = self._int_to_bytes(step_volume, 4)
         return step_volume_bytes
 
-    def set_flow_rate(self, flow_rate: int | float):
-        """Sets the flow rate of the pump.
+    def set_default_flow_rate(self, flow_rate: int | float):
+        """Sets the default flow rate of the pump.
+
+        :param flow_rate: The flow rate to set in mL/min
+        """
+        self.default_flow_rate = flow_rate
+
+    def _set_flow_rate(self, flow_rate: int | float):
+        """Sets the flow rate of the pump before pouring in volume.
 
         :param flow_rate: The flow rate to set in mL/min
         """
@@ -59,7 +66,6 @@ class Pump(SerialConnection):
         speed_param = self._compute_speed_param_from_flow(flow_rate)
         data_to_send = [10, 0, 1, speed_param, 0]
         self.write_to_serial_port(data_to_send)
-        self.flow_rate = flow_rate
 
     def pour_in_volume(self, volume: int | float, flow_rate: int | float | None = None, direction: str = "left"):
         """Pours in the specified volume of liquid.
@@ -72,12 +78,11 @@ class Pump(SerialConnection):
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
         direction_byte = 16 if direction == "left" else 17
 
-        if flow_rate is None:
-            if self.flow_rate is None:
-                raise ValueError("Flow rate must be set before pouring in volume or passed as an argument")
-            flow_rate = self.flow_rate
+        if flow_rate is None and self.default_flow_rate is None:
+            raise ValueError("Flow rate must be set before pouring in volume or passed as an argument")
 
-        self.set_flow_rate(flow_rate)
+        flow_rate = flow_rate or self.default_flow_rate
+        self._set_flow_rate(flow_rate)  # type: ignore
 
         logger.debug(f"Pouring in {volume:.3f} mL at flow rate {flow_rate:.3f} mL/min")
 
@@ -94,13 +99,13 @@ class Pump(SerialConnection):
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
         direction_byte = 11 if direction == "left" else 12
 
-        if flow_rate is None:
-            if self.flow_rate is None:
-                raise ValueError("Flow rate must be set before starting continuous rotation or passed as an argument")
-            flow_rate = self.flow_rate
+        if flow_rate is None and self.default_flow_rate is None:
+            raise ValueError("Flow rate must be set before starting continuous rotation or passed as an argument")
+
+        flow_rate = flow_rate or self.default_flow_rate
 
         logger.debug(f"Starting continuous rotation at flow rate {flow_rate:.3f} mL/min")
-        speed_param = self._compute_speed_param_from_flow(flow_rate)
+        speed_param = self._compute_speed_param_from_flow(flow_rate)  # type: ignore
 
         data_to_send = [direction_byte, 111, 1, speed_param, 0]
         self.write_to_serial_port(data_to_send)
