@@ -1,0 +1,45 @@
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = ["F401"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.poetry]
+name = "bio-tools"
+version = "0.1.0"
+description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+readme = "README.md"
+repository = "https://github.com/denis240997/bio_tools"
+packages = [
+    { include = "experiment" },
+    { include = "interfaces" },
+    { include = "tools" },
+    { include = "ui" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+loguru = "^0.7.2"
+munch = "^4.0.0"
+pyserial = "^3.5"
+ttkbootstrap = { version = "^1.10.1", optional = true }
+
+[tool.poetry.extras]
+ui = ["ttkbootstrap"]
+
+[tool.poetry.scripts]
+run_ui = "ui.main:main"
+
+[tool.poetry.group.dev.dependencies]
+munch-stubs = "^0.1.2"
+ruff = "^0.5.4"
+types-pyserial = "^3.5.0.20240527"
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^7.4.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

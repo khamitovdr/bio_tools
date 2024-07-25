@@ -156,7 +156,5 @@ cython_debug/
 # VSCode settings
 .vscode/
 
-# Config files
-pyproject.toml
-mypy.ini
+# Testing files
 *sandbox*
