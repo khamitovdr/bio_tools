@@ -62,16 +62,17 @@ class Measurement(Action):
     The measurement is a special type of action that also stores the measured value name and the measurement result.
     """
 
-    def __init__(self, func: Callable, measured_value_name: str, *args: Any, **kwargs: Any):
+    def __init__(self, func: Callable, measurement_name: str, *args: Any, **kwargs: Any):
         """Initialize the measurement with the function to be executed, the measured value name, and the arguments.
 
         :param func: The function to be executed
-        :param measured_value: The name of the measured value
+        :param measurement_name: The name of the measured value
         :param args: The positional arguments to be passed to the function
         :param kwargs: The keyword arguments to be passed to the function
         """
         super().__init__(func, *args, **kwargs)
-        self.measured_value = measured_value_name
+        self.measurement_name = measurement_name
+        self.measured_value = None
         logger.debug(f"Measurement created: {self.func.__name__} with args: {args} and kwargs: {kwargs}")
 
     def execute(self) -> Any:
@@ -79,10 +80,12 @@ class Measurement(Action):
 
         :return: The result of the measurement
         """
+        assert self.start_time is None, "Measurement already executed"
         self.start_time = datetime.now()
         logger.debug(f"Executing measurement: {self.func.__name__}")
         result = self.func(*self.args, **self.kwargs)
         self.end_time = datetime.now()
+        self.measured_value = result
         logger.debug(f"Measurement completed: {self.func.__name__}")
         return result
 
@@ -132,18 +135,18 @@ class Experiment:
         self.actions.append(Action(func, *args, **kwargs))
         logger.debug(f"Action added to experiment: {func.__name__}")
 
-    def add_measurement(self, func: Callable, measured_value_name: str, *args: Any, **kwargs: Any):
+    def add_measurement(self, func: Callable, measurement_name: str, *args: Any, **kwargs: Any):
         """Add a measurement to the experiment.
 
         The measurement will be executed in sequence when the experiment is run, and the result will be stored.
 
         :param func: The function to be executed
-        :param measured_value: The name of the measured value
+        :param measurement_name: The name of the measured value
         :param args: The positional arguments to be passed to the function
         :param kwargs: The keyword arguments to be passed to the function
         """
         self._validate_types(func, *args, **kwargs)
-        self.actions.append(Measurement(func, measured_value_name, *args, **kwargs))
+        self.actions.append(Measurement(func, measurement_name, *args, **kwargs))
         logger.debug(f"Measurement added to experiment: {func.__name__}")
 
     def add_wait(self, seconds: float):
@@ -164,8 +167,8 @@ class Experiment:
             logger.debug(f"Step {step + 1} from {len(self.actions)}")
             if isinstance(action, Measurement):
                 logger.debug(f"Executing measurement: {action.func.__name__}")
-                result = action.execute()
-                self.measurements[action.measured_value].append((datetime.now(), result))
+                action.execute()
+                self.measurements[action.measurement_name].append((datetime.now(), action.measured_value))
             elif isinstance(action, Action):
                 logger.debug(f"Executing action: {action.func.__name__}")
                 action.execute()
