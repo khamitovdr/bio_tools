@@ -1,0 +1,3 @@
+# Spectrophotometer Interface
+
+::: interfaces.spectrophotometer

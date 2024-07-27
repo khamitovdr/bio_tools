@@ -1,0 +1,3 @@
+# Devices Tool
+
+::: tools.devices

@@ -42,6 +42,9 @@ optional = true
 
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.30"
+mkdocs = "^1.6.0"
+mkdocstrings = "^0.25.2"
+mkdocstrings-python = "^1.10.7"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,0 +1,36 @@
+site_name: BioExperiment Suite
+theme:
+  name: material
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Experiment: experiment.md
+  - Interfaces:
+      - Overview: interfaces/index.md
+      - Pump: interfaces/pump.md
+      - Serial Connection: interfaces/serial_connection.md
+      - Spectrophotometer: interfaces/spectrophotometer.md
+  - Tools:
+      - Overview: tools/index.md
+      - Devices: tools/devices.md
+      - Serial Port: tools/serial_port.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
