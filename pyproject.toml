@@ -6,9 +6,10 @@ unfixable = ["F401"]
 line-length = 120
 
 [tool.poetry]
-name = "bio-tools"
+name = "bioexperiment-suite"
 version = "0.1.0"
 description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
+license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
 readme = "README.md"
 repository = "https://github.com/denis240997/bio_tools"
@@ -16,7 +17,7 @@ packages = [
     { include = "experiment" },
     { include = "interfaces" },
     { include = "tools" },
-    { include = "ui" },
+    { include = "gui" },
 ]
 
 [tool.poetry.dependencies]
@@ -27,10 +28,10 @@ pyserial = "^3.5"
 ttkbootstrap = { version = "^1.10.1", optional = true }
 
 [tool.poetry.extras]
-ui = ["ttkbootstrap"]
+gui = ["ttkbootstrap"]
 
 [tool.poetry.scripts]
-run_ui = "ui.main:main"
+run_gui = "gui.main:main"
 
 [tool.poetry.group.dev.dependencies]
 munch-stubs = "^0.1.2"
@@ -43,8 +44,7 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.30"
 mkdocs = "^1.6.0"
-mkdocstrings = "^0.25.2"
-mkdocstrings-python = "^1.10.7"
+mkdocstrings = {extras = ["python"], version = "^0.25.2"}
 
 [build-system]
 requires = ["poetry-core"]

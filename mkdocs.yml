@@ -1,5 +1,6 @@
 site_name: BioExperiment Suite
 repo_url: https://github.com/denis240997/bio_tools
+repo_name: denis240997/bio_tools
 theme:
   name: material
   features:
@@ -38,17 +39,25 @@ theme:
 
 # Navigation structure
 nav:
-  - Home: index.md
-  - Experiment: experiment.md
-  - Interfaces:
-      - Overview: interfaces/index.md
-      - Pump: interfaces/pump.md
-      - Serial Connection: interfaces/serial_connection.md
-      - Spectrophotometer: interfaces/spectrophotometer.md
-  - Tools:
-      - Overview: tools/index.md
-      - Devices: tools/devices.md
-      - Serial Port: tools/serial_port.md
+  - Getting Stared:
+      - Installation: getting_started/installation.md
+      - Quick Start: getting_started/quick_start.md
+  - Examples:
+      - Serial Connection: examples/serial_connection.md
+      - Discover Devices: examples/discover_devices.md
+      - Spectrophotometer: examples/spectrophotometer.md
+      - Pump: examples/pump.md
+      - Basic Experiment: examples/setting_up_experiment.md
+      - Advanced Experiment: examples/advanced_experiment.md
+  - API Reference:
+      - Interfaces:
+          - Serial Port: api/interfaces/serial_port.md
+          - Spectrophotometer: api/interfaces/spectrophotometer.md
+          - Pump: api/interfaces/pump.md
+      - Tools: api/tools.md
+      - Experiment:
+          - Actions: api/experiment/actions.md
+          - Experiment: api/experiment/experiment.md
 
 plugins:
   - search

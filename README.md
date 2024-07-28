@@ -1,41 +1,52 @@
-# Project Name
+# BioExperiment Suite
 
-A brief description of your project.
+Python toolbox for managing biological experiment devices (pumps, cell density detectors etc.) and setting up experiments.
 
 ## Table of Contents
 
-- [Project Name](#project-name)
-  - [Table of Contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Features](#features)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Contributing](#contributing)
-  - [License](#license)
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
 
 ## Introduction
 
-Provide a more detailed description of your project, its purpose, and its use cases.
+This project is a Python toolbox for managing biological experiment devices (pumps, cell density detectors etc.) and setting up experiments. Communication protocol is specific for devices produced by my lab in [Institute of Protein Research RAS](https://protres.ru/en), so it may not be suitable for other devices, but you can easily adapt it for your needs by overriding corresponding methods. The toolbox is designed to be easily extensible and customizable.
 
 ## Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Abstraction above COM-port communication
+- Automatic device discovery
+- High-level API for device control
+- Easy-to-use experiment setup
+- Scrupulous logging
+- Graphical user interface (in development)
 
 ## Installation
+
+To install the package, you can use `pip`:
+
+```sh
+pip install bioexperiment-suite
+```
+
+or with GUI support:
+
+```sh
+pip install bioexperiment-suite[gui]
+```
 
 ### Prerequisites
 
 Ensure you have the following installed on your machine:
 
 - Python 3.12 or higher
-- Poetry (for dependency management)
 
-### Steps
+## Usage
 
-1. **Clone the repository:**
+For comprehensive usage examples, please see the [examples](examples) directory.
 
-   ```sh
-   git clone https://github.com/your_username/your_project_name.git
-   cd your_project_name
+## License
+
+This project is licensed under the [MIT License](LICENSE).
