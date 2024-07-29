@@ -6,6 +6,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.path
+    - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
     - navigation.tracking
@@ -39,25 +40,28 @@ theme:
 
 # Navigation structure
 nav:
-  - Getting Stared:
-      - Installation: getting_started/installation.md
-      - Quick Start: getting_started/quick_start.md
+  # - Getting Stared:
+  #     - Installation: getting_started/installation.md
+  #     - Quick Start: getting_started/quick_start.md
   - Examples:
-      - Serial Connection: examples/serial_connection.md
-      - Discover Devices: examples/discover_devices.md
-      - Spectrophotometer: examples/spectrophotometer.md
-      - Pump: examples/pump.md
-      - Basic Experiment: examples/setting_up_experiment.md
-      - Advanced Experiment: examples/advanced_experiment.md
+      - examples/index.md
+  #     - examples/pump.md
+  #     - examples/spectrophotometer.md
+  #     - examples/discover_devices.md
+  #     - examples/setting_up_experiment.md
+  #     - examples/advanced_experiment.md
   - API Reference:
+      - api/index.md
       - Interfaces:
-          - Serial Port: api/interfaces/serial_port.md
-          - Spectrophotometer: api/interfaces/spectrophotometer.md
-          - Pump: api/interfaces/pump.md
+          - api/interfaces/index.md
+          - api/interfaces/serial_connection.md
+          - api/interfaces/spectrophotometer.md
+          - api/interfaces/pump.md
       - Tools: api/tools.md
       - Experiment:
-          - Actions: api/experiment/actions.md
-          - Experiment: api/experiment/experiment.md
+          - api/experiment/index.md
+          - api/experiment/actions.md
+          - api/experiment/experiment.md
 
 plugins:
   - search
@@ -66,14 +70,12 @@ plugins:
         python:
           options:
             docstring_style: sphinx
+            members_order: source
 
 markdown_extensions:
   - admonition
-  - codehilite
   - footnotes
-  - meta
   - toc:
       permalink: true
   - pymdownx.details
   - pymdownx.superfences
-  - pymdownx.tabbed

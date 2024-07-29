@@ -1,3 +1,0 @@
-# Pump Interface
-
-::: interfaces.pump

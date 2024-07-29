@@ -1096,4 +1096,4 @@ gui = ["ttkbootstrap"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "593232c6b4d56eb887d6dc6b281a267e52948d29f0b2edfec57b31f78aab794c"
+content-hash = "0cdd435f4c3c53c317b49e93f7a77959d20a7bd5c2f04913590056386251454b"
