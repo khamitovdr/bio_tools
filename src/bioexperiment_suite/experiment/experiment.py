@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any, Callable, get_type_hints
 
-from loader import logger
+from bioexperiment_suite.loader import logger
 
 
 class Action:

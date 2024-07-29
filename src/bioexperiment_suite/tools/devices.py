@@ -1,8 +1,7 @@
-from loguru import logger
+from bioexperiment_suite.interfaces import Pump, SerialConnection, Spectrophotometer
+from bioexperiment_suite.loader import device_interfaces, logger
 
-from interfaces import Pump, SerialConnection, Spectrophotometer
-from loader import device_interfaces
-from tools.serial_port import get_serial_ports
+from .serial_port import get_serial_ports
 
 
 def identify_device(port: str) -> str | None:

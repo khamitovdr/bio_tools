@@ -1,9 +1,8 @@
 from time import sleep
 
-from loguru import logger
+from bioexperiment_suite.loader import device_interfaces, logger
 
-from interfaces.serial_connection import SerialConnection
-from loader import device_interfaces
+from .serial_connection import SerialConnection
 
 
 class Spectrophotometer(SerialConnection):

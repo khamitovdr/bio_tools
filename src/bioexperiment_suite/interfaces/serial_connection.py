@@ -3,7 +3,8 @@ from time import sleep
 from typing import Callable
 
 import serial
-from loguru import logger
+
+from bioexperiment_suite.loader import logger
 
 
 class SerialConnection:

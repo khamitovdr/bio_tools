@@ -7,17 +7,17 @@ line-length = 120
 
 [tool.poetry]
 name = "bioexperiment-suite"
-version = "0.1.0"
+version = "0.1.4"
 description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
 readme = "README.md"
 repository = "https://github.com/denis240997/bio_tools"
 packages = [
-    { include = "experiment" },
-    { include = "interfaces" },
-    { include = "tools" },
-    { include = "gui" },
+    { include = "bioexperiment_suite", from = "src"},
+]
+include = [
+    { path = "src/bioexperiment_suite/device_interfaces.json"},
 ]
 
 [tool.poetry.dependencies]

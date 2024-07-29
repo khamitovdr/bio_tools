@@ -2,7 +2,8 @@ import glob
 import sys
 
 import serial
-from loguru import logger
+
+from bioexperiment_suite.loader import logger
 
 
 def get_serial_ports() -> list[str]:
