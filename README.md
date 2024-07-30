@@ -42,6 +42,7 @@ pip install bioexperiment-suite[gui]
 Ensure you have the following installed on your machine:
 
 - Python 3.12 or higher
+- [Windows CH340 Driver](https://sparks.gogo.co.nz/ch340.html) (for Windows users if not installed already)
 
 ## Usage
 
