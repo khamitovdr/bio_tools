@@ -1,4 +1,5 @@
 import inspect
+import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -113,13 +114,14 @@ class Experiment:
     The experiment keeps track of the time each action was executed and the measurements taken.
     """
 
-    def __init__(self):
+    def __init__(self, output_dir: os.PathLike | None = None):
         """Initialize the experiment with an empty list of actions and measurements"""
         self.actions: list[Action | WaitAction] = []
         self.measurements: dict[str, list[tuple[datetime, Any]]] = defaultdict(list)
         self.current_time: datetime | None = (
             None  # Time to keep track of the experiment progress. Initializes on start.
         )
+        self.output_dir = output_dir
         logger.debug("Experiment created")
 
     def add_action(self, func: Callable, *args: Any, **kwargs: Any):
@@ -169,6 +171,7 @@ class Experiment:
                 logger.debug(f"Executing measurement: {action.func.__name__}")
                 action.execute()
                 self.measurements[action.measurement_name].append((datetime.now(), action.measured_value))
+                self.write_measurement_to_csv(action.measurement_name)
             elif isinstance(action, Action):
                 logger.debug(f"Executing action: {action.func.__name__}")
                 action.execute()
@@ -185,6 +188,24 @@ class Experiment:
             else:
                 logger.error(f"Unknown action type: {type(action)}")
                 raise ValueError(f"Unknown action type: {type(action)}")
+
+    def write_measurement_to_csv(self, measurement_name: str):
+        """Write last acquired measurement to a CSV file.
+
+        :param measurement_name: The name of the measurement to write to a CSV file
+        """
+        if self.output_dir is None:
+            return
+
+        if measurement_name not in self.measurements:
+            raise ValueError(f"Measurement '{measurement_name}' not found")
+
+        output_file = os.path.join(self.output_dir, f"{measurement_name}.csv")
+        with open(output_file, "a") as f:
+            timestamp, value = self.measurements[measurement_name][-1]
+            f.write(f"{timestamp},{value}\n")
+
+        logger.debug(f"Measurement '{measurement_name}' written to {output_file}")
 
     def _validate_types(self, func: Callable, *args: Any, **kwargs: Any):
         """Validate that the arguments passed to the function are of the correct type.
