@@ -3,6 +3,7 @@ import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from threading import Event, Thread
 from typing import Any, Callable, get_type_hints
 
 from bioexperiment_suite.loader import logger
@@ -122,6 +123,8 @@ class Experiment:
             None  # Time to keep track of the experiment progress. Initializes on start.
         )
         self.output_dir = output_dir
+        self._thread: Thread | None = None
+        self._stop_event = Event()
         logger.debug("Experiment created")
 
     def add_action(self, func: Callable, *args: Any, **kwargs: Any):
@@ -161,7 +164,7 @@ class Experiment:
         self.actions.append(WaitAction(seconds))
         logger.debug(f"Wait action added to experiment: {seconds} seconds")
 
-    def run(self):
+    def _run(self):
         """Run the experiment by executing each action in sequence."""
         self.current_time = datetime.now()
         logger.debug(f"Experiment started. Start time: {self.current_time}")
@@ -178,16 +181,47 @@ class Experiment:
             elif isinstance(action, WaitAction):
                 wait_until = self.current_time + action.wait_time
                 logger.debug(f"Waiting for {action.wait_time.total_seconds()} seconds from {self.current_time}")
-                if datetime.now() <= wait_until:
-                    time.sleep((wait_until - datetime.now()).total_seconds())
-                else:
+
+                if datetime.now() > wait_until:
                     logger.warning(f"Wait time exceeded on step {step + 1} by {datetime.now() - wait_until}")
+
+                while datetime.now() < wait_until:
+                    if self._stop_event.is_set():
+                        logger.debug("Experiment stopped")
+                        return
+                    time.sleep(0.1)
 
                 self.current_time += action.wait_time
 
             else:
                 logger.error(f"Unknown action type: {type(action)}")
                 raise ValueError(f"Unknown action type: {type(action)}")
+
+    def start(self, start_in_background: bool = True):
+        """Start the experiment by running it in a separate thread.
+
+        :param start_in_background: If True, start the experiment in a separate thread.
+        If False, run the experiment in the current thread. Be careful with this option,
+        as it will block the current thread until the experiment is finished!
+        """
+        if self._thread is not None:
+            logger.warning("Experiment is already running")
+            return
+
+        self._stop_event.clear()
+        if start_in_background:
+            self._thread = Thread(target=self._run)
+            self._thread.start()
+        else:
+            self._run()
+
+    def stop(self):
+        """Stop the experiment by setting the stop event."""
+        if self._thread is None:
+            logger.warning("Experiment is not running")
+            return
+        self._stop_event.set()
+        logger.info("Experiment stop signal sent")
 
     def write_measurement_to_csv(self, measurement_name: str):
         """Write last acquired measurement to a CSV file.
