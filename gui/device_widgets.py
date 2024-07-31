@@ -261,6 +261,7 @@ class ConnectedDevicesWidget(ttk.Frame):
 
     def discover_devices(self):
         for child in self.devices_frame.winfo_children():
+            child.device.__del__()
             child.destroy()
 
         progress = ttk.Progressbar(self.devices_frame, mode="determinate", bootstyle=c.STRIPED)
