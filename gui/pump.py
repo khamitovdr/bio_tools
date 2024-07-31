@@ -2,14 +2,17 @@ from tkinter import DoubleVar, StringVar, simpledialog
 
 import ttkbootstrap as ttk
 from bioexperiment_suite.interfaces import Pump
-from ttkbootstrap.constants import DANGER
+from ttkbootstrap import constants as c
 
 
-class PumpWidget(ttk.Frame):
+class PumpWidget(ttk.Labelframe):
     instance_count = 0  # Class variable to keep track of the number of instances
+    FRAME_PADDING = 5
+    PADX = 5
+    PADY = 5
 
-    def __init__(self, parent: ttk.Window, pump: Pump):
-        super().__init__(parent)
+    def __init__(self, parent: ttk.Frame, pump: Pump):
+        super().__init__(parent, padding=self.FRAME_PADDING, bootstyle=c.PRIMARY, text="Pump")
         PumpWidget.instance_count += 1
 
         self.pump = pump
@@ -18,72 +21,132 @@ class PumpWidget(ttk.Frame):
         self.volume = DoubleVar(value=0.0)
         self.direction = StringVar(value="right")
 
-        self.on_flow_rate_change()
-        self.flow_rate.trace_add("write", self.on_flow_rate_change)
-
-        # Create widgets
         self.create_widgets()
-        self.grid_widgets()
 
-    def create_widgets(self):
-        self.title_label = ttk.Label(self, textvariable=self.title, font=("Helvetica", 16, "bold"))
+    def crate_title_frame(self) -> ttk.Frame:
+        frame = ttk.Frame(self, padding=self.FRAME_PADDING)
 
-        self.rename_button = ttk.Button(self, text="Rename", command=self.rename_pump)
+        label = ttk.Label(frame, textvariable=self.title, font=("Helvetica", 16, "bold"))
+        label.pack(side=c.LEFT, padx=self.PADX, pady=self.PADY)
 
-        self.flow_rate_label = ttk.Label(self, text="Flow rate (mL/min):")
-        self.flow_rate_entry = ttk.Entry(self, textvariable=self.flow_rate)
-        self.set_flow_rate_button = ttk.Button(self, text="Set", command=self.set_flow_rate)
+        rename_button = ttk.Button(frame, text="Rename", command=self.rename_pump, bootstyle=c.SECONDARY)
+        rename_button.pack(side=c.RIGHT, padx=self.PADX, pady=self.PADY)
 
-        self.port_name_label = ttk.Label(self, text="Port:")
-        self.port_name_info = ttk.Label(self, textvariable=self.pump.port)
+        return frame
 
-        self.baudrate_label = ttk.Label(self, text="Baudrate:")
-        self.baudrate_info = ttk.Label(self, textvariable=self.pump.baudrate)
+    def create_info_section(self) -> ttk.Labelframe:
+        frame = ttk.Labelframe(self, bootstyle=c.INFO, text="Info", padding=self.FRAME_PADDING)
+        frame.columnconfigure(0, weight=1, minsize=110)
+        frame.columnconfigure(1, weight=1, minsize=40)
 
-        self.rotate_right_button = ttk.Button(
-            self, text="Rotate right", command=lambda: self.pump.start_continuous_rotation(direction="right")
+        port_name_label = ttk.Label(frame, text="Port:")
+        port_name_label.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        port_name_info = ttk.Label(frame, text=self.pump.port)
+        port_name_info.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        baudrate_label = ttk.Label(frame, text="Baudrate:")
+        baudrate_label.grid(row=1, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        baudrate_info = ttk.Label(frame, text=self.pump.baudrate)
+        baudrate_info.grid(row=1, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        return frame
+
+    def create_flow_rate_control(self) -> ttk.Labelframe:
+        frame = ttk.Labelframe(self, bootstyle=c.PRIMARY, text="Flow rate control", padding=self.FRAME_PADDING)
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+
+        label = ttk.Label(frame, text="Flow rate (mL/min):")
+        label.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        entry = ttk.Entry(frame, textvariable=self.flow_rate, bootstyle=c.PRIMARY, width=label.winfo_width())
+        entry.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        set_button = ttk.Button(frame, text="Set", command=self.set_flow_rate, bootstyle=c.PRIMARY)
+        set_button.grid(row=1, column=0, sticky="ew", columnspan=2, padx=self.PADX, pady=self.PADY)
+
+        return frame
+
+    def create_continuous_rotation_control(self) -> ttk.Labelframe:
+        frame = ttk.Labelframe(
+            self, bootstyle=c.PRIMARY, text="Continuous rotation control", padding=self.FRAME_PADDING
         )
-        self.stop_button = ttk.Button(self, text="Stop", bootstyle=DANGER, command=self.pump.stop_continuous_rotation)
-        self.rotate_left_button = ttk.Button(
-            self, text="Rotate Left", command=lambda: self.pump.start_continuous_rotation(direction="left")
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(2, weight=1)
+
+        rotate_right_button = ttk.Button(
+            frame,
+            text="Rotate right",
+            command=lambda: self.pump.start_continuous_rotation(direction="right"),
+            bootstyle=c.SUCCESS,
         )
+        rotate_right_button.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
 
-        self.volume_label = ttk.Label(self, text="Volume (mL):")
-        self.volume_entry = ttk.Entry(self, textvariable=self.volume)
+        stop_button = ttk.Button(frame, text="Stop", bootstyle=c.DANGER, command=self.pump.stop_continuous_rotation)
+        stop_button.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
 
-        self.right_radio = ttk.Radiobutton(self, text="Right", variable=self.direction, value="right")
-        self.left_radio = ttk.Radiobutton(self, text="Left", variable=self.direction, value="left")
+        rotate_left_button = ttk.Button(
+            frame,
+            text="Rotate Left",
+            command=lambda: self.pump.start_continuous_rotation(direction="left"),
+            bootstyle=c.SUCCESS,
+        )
+        rotate_left_button.grid(row=0, column=2, sticky="ew", padx=self.PADX, pady=self.PADY)
 
-        self.pump_button = ttk.Button(
-            self,
+        return frame
+
+    def create_volume_pouring_control(self) -> ttk.Labelframe:
+        frame = ttk.Labelframe(self, bootstyle=c.PRIMARY, text="Volume pouring control", padding=self.FRAME_PADDING)
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+
+        volume_label = ttk.Label(frame, text="Volume (mL):")
+        volume_label.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        volume_entry = ttk.Entry(frame, textvariable=self.volume, bootstyle=c.PRIMARY, width=volume_label.winfo_width())
+        volume_entry.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        direction_frame = ttk.Frame(frame, padding=0)
+        direction_frame.grid(row=1, column=0, columnspan=2, sticky="ew")
+        direction_frame.columnconfigure(0, weight=1)
+        direction_frame.columnconfigure(1, weight=1)
+        right_radio = ttk.Radiobutton(
+            direction_frame, text="Right", variable=self.direction, value="right", bootstyle=("toolbutton", c.PRIMARY)
+        )
+        right_radio.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        left_radio = ttk.Radiobutton(
+            direction_frame, text="Left", variable=self.direction, value="left", bootstyle=("toolbutton", c.PRIMARY)
+        )
+        left_radio.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
+
+        pump_button = ttk.Button(
+            frame,
             text="Pump",
             command=lambda: self.pump.pour_in_volume(self.volume.get(), direction=self.direction.get()),
+            bootstyle=c.SUCCESS,
         )
+        pump_button.grid(row=2, column=0, columnspan=2, sticky="ew", padx=self.PADX, pady=self.PADY)
 
-    def grid_widgets(self):
-        self.title_label.grid(row=0, column=0, columnspan=3, padx=5, pady=5)
-        self.rename_button.grid(row=0, column=3, padx=5, pady=5)
+        return frame
 
-        self.flow_rate_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        self.flow_rate_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+    def create_widgets(self):
+        title_frame = self.crate_title_frame()
+        title_frame.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        self.port_name_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
-        self.port_name_info.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        info_section = self.create_info_section()
+        info_section.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        self.baudrate_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
-        self.baudrate_info.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        flow_rate_control = self.create_flow_rate_control()
+        flow_rate_control.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        self.rotate_right_button.grid(row=4, column=0, padx=5, pady=5)
-        self.stop_button.grid(row=4, column=1, padx=5, pady=5)
-        self.rotate_left_button.grid(row=4, column=2, padx=5, pady=5)
+        continuous_rotation_control = self.create_continuous_rotation_control()
+        continuous_rotation_control.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        self.volume_label.grid(row=5, column=0, padx=5, pady=5, sticky="e")
-        self.volume_entry.grid(row=5, column=1, padx=5, pady=5, sticky="w")
-
-        self.right_radio.grid(row=6, column=0, padx=5, pady=5)
-        self.left_radio.grid(row=6, column=1, padx=5, pady=5)
-
-        self.pump_button.grid(row=6, column=2, padx=5, pady=5)
+        volume_pouring_control = self.create_volume_pouring_control()
+        volume_pouring_control.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
     def rename_pump(self):
         new_name = simpledialog.askstring("Rename pump", "Enter new name:", initialvalue=self.title.get())
@@ -94,18 +157,3 @@ class PumpWidget(ttk.Frame):
         flow_rate = self.flow_rate.get()
         self.pump.set_default_flow_rate(flow_rate)
         print(f"Flow rate set to {flow_rate} mL/min")
-
-
-if __name__ == "__main__":
-    root = ttk.Window(themename="cosmo")
-    root.title("Pump Control Interface")
-
-    from tools import get_connected_devices
-
-    pumps, _ = get_connected_devices()
-
-    for pump in pumps:
-        pump_widget = PumpWidget(root, pump=pump)
-        pump_widget.grid(padx=10, pady=10, sticky="nsew")
-
-    root.mainloop()
