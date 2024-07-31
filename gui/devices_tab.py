@@ -1,8 +1,10 @@
 import threading
 
 import ttkbootstrap as ttk
+from bioexperiment_suite.interfaces import Pump, Spectrophotometer
 from bioexperiment_suite.tools import get_connected_devices
 from device_widgets import PumpWidget, SpectrophotometerWidget
+from store import Store
 from ttkbootstrap import constants as c
 
 
@@ -11,17 +13,22 @@ class ConnectedDevicesWidget(ttk.Frame):
     PADX = 5
     PADY = 5
 
-    def __init__(self, parent):
+    def __init__(self, parent: ttk.Frame, store: Store):
         super().__init__(parent, padding=5)
 
-        self.pumps = []
-        self.spectrophotometers = []
+        self.store = store
+
+        self.pumps: list[Pump] = []
+        self.spectrophotometers: list[Spectrophotometer] = []
+
         self.create_widgets()
 
     def discover_devices(self):
-        for child in self.devices_frame.winfo_children():
-            child.device.__del__()
-            child.destroy()
+        for device_widgets in (self.store.pump_widgets, self.store.spectrophotometer_widgets):
+            while device_widgets:
+                widget = device_widgets.pop()
+                widget.device.__del__()
+                widget.destroy()
 
         progress = ttk.Progressbar(self.devices_frame, mode="determinate", bootstyle=c.STRIPED)
         progress.pack(fill=c.X, expand=c.YES, padx=self.PADX, pady=self.PADY)
@@ -43,15 +50,17 @@ class ConnectedDevicesWidget(ttk.Frame):
 
         progress.destroy()
 
-        for pump in self.pumps:
-            PumpWidget(self.devices_frame, pump).pack(
-                side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY
-            )
+        while self.pumps:
+            pump = self.pumps.pop()
+            pump_widget = PumpWidget(self.devices_frame, pump)
+            self.store.pump_widgets.append(pump_widget)
+            pump_widget.pack(side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        for spec in self.spectrophotometers:
-            SpectrophotometerWidget(self.devices_frame, spec).pack(
-                side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY
-            )
+        while self.spectrophotometers:
+            spec = self.spectrophotometers.pop()
+            spec_widget = SpectrophotometerWidget(self.devices_frame, spec)
+            self.store.spectrophotometer_widgets.append(spec_widget)
+            spec_widget.pack(side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
     def create_widgets(self):
         discover_button = ttk.Button(self, text="Discover devices", command=self.discover_devices, bootstyle=c.PRIMARY)
