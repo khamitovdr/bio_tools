@@ -74,6 +74,7 @@ class PumpWidget(DeviceWidget):
         self.volume = DoubleVar(value=0.0)
         self.direction = StringVar(value="right")
 
+        self.set_flow_rate()
         self.create_widgets()
 
     def create_flow_rate_control(self) -> ttk.Labelframe:
