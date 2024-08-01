@@ -1,8 +1,9 @@
 from pathlib import Path
-from tkinter import DoubleVar, Event, IntVar, StringVar, filedialog
+from tkinter import DoubleVar, Event, IntVar, StringVar, filedialog, messagebox
 
 import ttkbootstrap as ttk
 from bioexperiment_suite.interfaces import Pump, Spectrophotometer
+from bioexperiment_suite.loader import logger
 from store import Store
 from ttkbootstrap import constants as c
 
@@ -28,6 +29,9 @@ class ExperimentWidget(ttk.Frame):
         self.poured_out_volume_ml = DoubleVar(value=2.0)
         self.infused_volume_ml = DoubleVar(value=1.0)
         self.flow_rate_ml_per_minute = DoubleVar(value=3.0)
+
+        self.is_experiment_setup = False
+        self.is_experiment_running = False
 
         self.create_widgets()
 
@@ -153,12 +157,104 @@ class ExperimentWidget(ttk.Frame):
 
         return frame
 
+    def setup_experiment(self):
+        MEASUREMENT_WAIT_TIME_SECONDS = 60
+        n_solution_refreshes = self.experiment_duration_hours.get() * 60 // self.solution_refresh_interval_minutes.get()
+        n_measurements_per_solution_refresh = (
+            self.solution_refresh_interval_minutes.get() // self.measurement_interval_minutes.get()
+        )
+
+        for _ in range(n_solution_refreshes):
+            for _ in range(n_measurements_per_solution_refresh):
+                self.store.experiment.add_measurement(
+                    self.spectrophotometer.get_temperature,  # type: ignore
+                    measurement_name="Temperature (C)",
+                )
+                self.store.experiment.add_measurement(
+                    self.spectrophotometer.measure_absorbance,  # type: ignore
+                    measurement_name="Absorbance",
+                )
+                self.store.experiment.add_wait(self.measurement_interval_minutes.get() * 60)
+
+            self.store.experiment.actions.pop()
+            self.store.experiment.add_wait(MEASUREMENT_WAIT_TIME_SECONDS)
+            self.store.experiment.add_action(
+                self.pour_out_pump.pour_in_volume,  # type: ignore
+                volume=self.poured_out_volume_ml.get(),
+                flow_rate=self.flow_rate_ml_per_minute.get(),
+                direction="left",
+            )
+            self.store.experiment.add_action(
+                self.infuse_pump.pour_in_volume,  # type: ignore
+                volume=self.infused_volume_ml.get(),
+                flow_rate=self.flow_rate_ml_per_minute.get(),
+                direction="right",
+            )
+            self.store.experiment.add_wait(self.measurement_interval_minutes.get() * 60 - MEASUREMENT_WAIT_TIME_SECONDS)
+
+    def apply_experiment_settings(self):
+        if not self.infuse_pump or not self.pour_out_pump or not self.spectrophotometer:
+            messagebox.showerror(title="Error", message="Please select all devices")
+            return
+
+        try:
+            assert self.experiment_duration_hours.get() > 0
+            assert self.solution_refresh_interval_minutes.get() > 0
+            assert self.measurement_interval_minutes.get() > 0
+        except AssertionError:
+            messagebox.showerror(title="Error", message="Please enter positive values for durations and intervals")
+            return
+
+        self.store.experiment.reset_experiment()
+        self.setup_experiment()
+        self.is_experiment_setup = True
+        logger.info("Experiment is ready to start")
+
+    def start_experiment(self):
+        if not self.is_experiment_setup:
+            messagebox.showerror(title="Error", message="Please apply experiment settings first")
+            return
+
+        self.store.experiment.start()
+        self.is_experiment_running = True
+
+    def stop_experiment(self):
+        if not self.is_experiment_running:
+            messagebox.showerror(title="Error", message="Experiment is not running")
+            return
+
+        self.store.experiment.stop()
+        self.is_experiment_running = False
+
+    def create_experiment_controls_widget(self) -> ttk.Labelframe:
+        frame = ttk.Labelframe(self, bootstyle=c.PRIMARY, text="Experiment Controls", padding=self.FRAME_PADDING)
+
+        apply_settings_button = ttk.Button(
+            frame, text="Apply Experiment Settings", command=self.apply_experiment_settings, bootstyle=c.PRIMARY
+        )
+        apply_settings_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
+
+        start_experiment_button = ttk.Button(
+            frame, text="Start Experiment", command=self.start_experiment, bootstyle=c.SUCCESS
+        )
+        start_experiment_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
+
+        stop_experiment_button = ttk.Button(
+            frame, text="Stop Experiment", command=self.stop_experiment, bootstyle=c.DANGER
+        )
+        stop_experiment_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
+
+        return frame
+
     def create_widgets(self):
         output_directory_widget = self.create_output_directory_widget()
-        output_directory_widget.grid(row=0, column=0, sticky=c.NSEW)
+        output_directory_widget.grid(row=1, column=0, sticky=c.NSEW, padx=self.PADX, pady=self.PADY)
 
         devices_choice_widget = self.create_devices_choice_widget()
-        devices_choice_widget.grid(row=1, column=0, sticky=c.NSEW)
+        devices_choice_widget.grid(row=0, column=0, sticky=c.NSEW, padx=self.PADX, pady=self.PADY)
 
         experiment_setup_widget = self.create_experiment_setup_widget()
-        experiment_setup_widget.grid(row=2, column=0, sticky=c.NSEW)
+        experiment_setup_widget.grid(row=0, column=1, sticky=c.NSEW, padx=self.PADX, pady=self.PADY)
+
+        experiment_controls_widget = self.create_experiment_controls_widget()
+        experiment_controls_widget.grid(row=1, column=1, sticky=c.NSEW, padx=self.PADX, pady=self.PADY)
