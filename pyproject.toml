@@ -7,7 +7,7 @@ line-length = 120
 
 [tool.poetry]
 name = "bioexperiment-suite"
-version = "0.1.4"
+version = "0.2.0"
 description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
@@ -32,7 +32,7 @@ ttkbootstrap = { version = "^1.10.1", optional = true }
 gui = ["ttkbootstrap"]
 
 [tool.poetry.scripts]
-run_gui = "gui.main:main"
+run_gui = "bioexperiment_suite.gui.main:main"
 
 [tool.poetry.group.dev.dependencies]
 munch-stubs = "^0.1.2"

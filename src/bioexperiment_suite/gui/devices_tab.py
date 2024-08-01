@@ -3,9 +3,10 @@ import threading
 import ttkbootstrap as ttk
 from bioexperiment_suite.interfaces import Pump, Spectrophotometer
 from bioexperiment_suite.tools import get_connected_devices
-from device_widgets import PumpWidget, SpectrophotometerWidget
-from store import Store
 from ttkbootstrap import constants as c
+
+from .device_widgets import PumpWidget, SpectrophotometerWidget
+from .store import Store
 
 
 class ConnectedDevicesWidget(ttk.Frame):

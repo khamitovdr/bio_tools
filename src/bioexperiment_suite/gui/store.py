@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 
 from bioexperiment_suite.experiment import Experiment
-from device_widgets import PumpWidget, SpectrophotometerWidget
+
+from .device_widgets import PumpWidget, SpectrophotometerWidget
 
 
 @dataclass

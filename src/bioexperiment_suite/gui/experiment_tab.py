@@ -4,8 +4,9 @@ from tkinter import DoubleVar, Event, IntVar, StringVar, filedialog, messagebox
 import ttkbootstrap as ttk
 from bioexperiment_suite.interfaces import Pump, Spectrophotometer
 from bioexperiment_suite.loader import logger
-from store import Store
 from ttkbootstrap import constants as c
+
+from .store import Store
 
 
 class ExperimentWidget(ttk.Frame):

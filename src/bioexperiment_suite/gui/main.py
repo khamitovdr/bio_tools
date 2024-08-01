@@ -1,10 +1,11 @@
 from typing import Type
 
 import ttkbootstrap as ttk
-from devices_tab import ConnectedDevicesWidget
-from experiment import ExperimentWidget
-from store import Store
 from ttkbootstrap import constants as c
+
+from .devices_tab import ConnectedDevicesWidget
+from .experiment_tab import ExperimentWidget
+from .store import Store
 
 
 class MainWindow(ttk.Frame):
