@@ -249,6 +249,17 @@ class Experiment:
 
         logger.debug(f"Measurement '{measurement_name}' written to {output_file}")
 
+    def reset_experiment(self):
+        """Reset the experiment by clearing the actions, measurements and current time."""
+        logger.debug("Experiment reset")
+        if self._thread is not None:
+            logger.warning("Experiment is running. Stop it before resetting.")
+            return
+
+        self.actions.clear()
+        self.measurements.clear()
+        self.current_time = None
+
     def _validate_types(self, func: Callable, *args: Any, **kwargs: Any):
         """Validate that the arguments passed to the function are of the correct type.
 
