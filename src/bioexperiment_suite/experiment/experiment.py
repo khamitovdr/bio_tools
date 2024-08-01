@@ -127,6 +127,14 @@ class Experiment:
         self._stop_event = Event()
         logger.debug("Experiment created")
 
+    def specify_output_dir(self, output_dir: os.PathLike):
+        """Specify the output directory to write measurements to CSV files.
+
+        :param output_dir: The directory to write measurements to
+        """
+        self.output_dir = output_dir
+        logger.debug(f"Output directory specified: {output_dir}")
+
     def add_action(self, func: Callable, *args: Any, **kwargs: Any):
         """Add an action to the experiment.
 
