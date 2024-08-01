@@ -1,6 +1,6 @@
-from bioexperiment_suite.interfaces import Pump, SerialConnection, Spectrophotometer
-from bioexperiment_suite.loader import device_interfaces, logger
+from bioexperiment_suite.interfaces import Pump, Spectrophotometer  # , SerialConnection
 
+# from bioexperiment_suite.loader import device_interfaces, logger
 from .serial_port import get_serial_ports
 
 
@@ -11,22 +11,26 @@ def identify_device(port: str) -> str | None:
 
     :returns: The device name of the device connected to the specified serial port, None otherwise
     """
-    serial_connection = SerialConnection(port)
-    for device_name, device_interface in device_interfaces.items():
-        logger.debug(f'Checking for device "{device_interface.type}" on port {port}')
-        logger.debug(f"Identification signal: {device_interface.identification_signal}")
-        response = serial_connection.communicate_with_serial_port(
-            device_interface.identification_signal, device_interface.identification_response_len
-        )
+    # serial_connection = SerialConnection(port)
+    # for device_name, device_interface in device_interfaces.items():
+    #     logger.debug(f'Checking for device "{device_interface.type}" on port {port}')
+    #     logger.debug(f"Identification signal: {device_interface.identification_signal}")
+    #     response = serial_connection.communicate_with_serial_port(
+    #         device_interface.identification_signal, device_interface.identification_response_len
+    #     )
 
-        if len(response) == device_interface.identification_response_len and list(response)[0] == int(
-            device_interface.first_identification_response_byte
-        ):
-            logger.success(f'Device "{device_interface.type}" identified on port {port}')
-            return device_name
+    #     if len(response) == device_interface.identification_response_len and list(response)[0] == int(
+    #         device_interface.first_identification_response_byte
+    #     ):
+    #         logger.success(f'Device "{device_interface.type}" identified on port {port}')
+    #         return device_name
 
-    logger.warning(f"No device identified on port {port}")
-    return None
+    # logger.warning(f"No device identified on port {port}")
+
+    device_names = ["pump", "spectrophotometer"]
+    port_number = int(port[-1])
+
+    return device_names[port_number % 2]
 
 
 def get_connected_devices() -> tuple[list[Pump], list[Spectrophotometer]]:

@@ -20,12 +20,13 @@ class Pump(SerialConnection):
 
     def _compute_calibration_volume(self):
         """Computes the calibration volume of the pump."""
-        identification_response = self.communicate_with_serial_port(
-            self.interface.identification_signal,
-            self.interface.identification_response_len,
-        )
-        self._calibration_volume = self._bytes_to_int(identification_response[1:]) / 10**5
-        logger.debug(f"Calibration volume computed: {self._calibration_volume:.3f}")
+        # identification_response = self.communicate_with_serial_port(
+        #     self.interface.identification_signal,
+        #     self.interface.identification_response_len,
+        # )
+        # self._calibration_volume = self._bytes_to_int(identification_response[1:]) / 10**5
+        self._calibration_volume = 1.0
+        logger.debug(f"FAKE calibration volume computed: {self._calibration_volume:.3f}")
 
     def _compute_speed_param_from_flow(self, flow: int | float) -> int:
         """Computes the speed parameter from the real speed of the pump.

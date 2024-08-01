@@ -1,9 +1,8 @@
-from functools import wraps
+# from functools import wraps
 from time import sleep
-from typing import Callable
 
-import serial
-
+# from typing import Callable
+# import serial
 from bioexperiment_suite.loader import logger
 
 
@@ -26,41 +25,41 @@ class SerialConnection:
 
     def _create_serial_connection(self):
         """Creates a serial connection with the specified parameters."""
-        self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout_sec)
-        logger.info(f"Serial connection established with {self.port}")
-        sleep(3)
+        # self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout_sec)
+        logger.info(f"FAKE serial connection established with {self.port}")
+        sleep(1)
 
-    @staticmethod
-    def _restore_connection(method: Callable) -> Callable:
-        """Decorator to restore the serial connection if it is lost during communication.
+        # @staticmethod
+        # def _restore_connection(method: Callable) -> Callable:
+        # """Decorator to restore the serial connection if it is lost during communication.
 
-        :param method: The method to decorate
+        # :param method: The method to decorate
 
-        :returns: The decorated method
-        """
+        # :returns: The decorated method
+        # """
 
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return method(self, *args, **kwargs)
-            except serial.SerialException:
-                logger.warning(f"Serial connection lost on port {self.port}. Restoring connection...")
-                self._create_serial_connection()
-                return method(self, *args, **kwargs)
+        # @wraps(method)
+        # def wrapper(self, *args, **kwargs):
+        #     try:
+        #         return method(self, *args, **kwargs)
+        #     except serial.SerialException:
+        #         logger.warning(f"Serial connection lost on port {self.port}. Restoring connection...")
+        #         self._create_serial_connection()
+        #         return method(self, *args, **kwargs)
 
-        return wrapper
+        # return wrapper
 
-    @_restore_connection
+    # @_restore_connection
     def write_to_serial_port(self, data_to_send: list[int]) -> None:
         """Writes data to the serial port.
 
         :param data_to_send: The data to send to the serial port
         """
-        bytes_to_send = bytes(data_to_send)
-        self.serial.write(bytes_to_send)
-        logger.debug(f"Data sent to serial port: {data_to_send}")
+        # bytes_to_send = bytes(data_to_send)
+        # self.serial.write(bytes_to_send)
+        logger.debug(f"Data sent to FAKE serial port: {data_to_send}")
 
-    @_restore_connection
+    # @_restore_connection
     def read_from_serial_port(self, response_bytes: int) -> bytes:
         """Reads data from the serial port.
 
@@ -68,7 +67,8 @@ class SerialConnection:
 
         :returns: The response from the serial port
         """
-        response = self.serial.read(response_bytes)
+        # response = self.serial.read(response_bytes)
+        response = bytes([0x00] * response_bytes)
         logger.debug(f"Data received from serial port: {list(response)}")
         return response
 
@@ -109,5 +109,5 @@ class SerialConnection:
 
     def __del__(self):
         """Closes the serial connection when the object is deleted."""
-        logger.debug(f"Closing serial connection with {self.port}")
-        self.serial.close()
+        logger.debug(f"Closing FAKE serial connection with {self.port}")
+        # self.serial.close()
