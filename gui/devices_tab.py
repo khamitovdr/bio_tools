@@ -25,8 +25,8 @@ class ConnectedDevicesWidget(ttk.Frame):
 
     def discover_devices(self) -> None:
         for device_widgets in (self.store.pump_widgets, self.store.spectrophotometer_widgets):
-            for key in device_widgets:
-                widget = device_widgets.pop(key)
+            while device_widgets:
+                widget = device_widgets.pop()
                 widget.device.__del__()
                 widget.destroy()
 
@@ -53,13 +53,13 @@ class ConnectedDevicesWidget(ttk.Frame):
         while self.pumps:
             pump = self.pumps.pop()
             pump_widget = PumpWidget(self.devices_frame, pump)
-            self.store.pump_widgets[pump_widget.title.get()] = pump_widget
+            self.store.pump_widgets.append(pump_widget)
             pump_widget.pack(side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
         while self.spectrophotometers:
             spec = self.spectrophotometers.pop()
             spec_widget = SpectrophotometerWidget(self.devices_frame, spec)
-            self.store.spectrophotometer_widgets[spec_widget.title.get()] = spec_widget
+            self.store.spectrophotometer_widgets.append(spec_widget)
             spec_widget.pack(side=c.LEFT, fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
     def create_widgets(self) -> None:

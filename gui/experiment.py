@@ -113,18 +113,18 @@ class ExperimentWidget(ttk.Frame):
         spectrophotometer_label.grid(row=2, column=0, sticky=c.EW, padx=self.PADX, pady=self.PADY)
 
         def handle_infuse_pump_choice(event: Event) -> None:
-            self.infuse_pump = self.store.pump_widgets[event.widget.get()].pump
+            self.infuse_pump = self.store.get_pump_by_name(event.widget.get())
 
         def handle_pour_out_pump_choice(event: Event) -> None:
-            self.pour_out_pump = self.store.pump_widgets[event.widget.get()].pump
+            self.pour_out_pump = self.store.get_pump_by_name(event.widget.get())
 
         def handle_spectrophotometer_choice(event: Event) -> None:
-            self.spectrophotometer = self.store.spectrophotometer_widgets[event.widget.get()].spectrophotometer
+            self.spectrophotometer = self.store.get_spectrophotometer_by_name(event.widget.get())
 
         def render_choices():
             infuse_pump_choice = ttk.Combobox(
                 frame,
-                values=list(self.store.pump_widgets.keys()),
+                values=self.store.pump_names,
                 state="readonly",
             )
             infuse_pump_choice.grid(row=0, column=1, sticky=c.EW, padx=self.PADX, pady=self.PADY)
@@ -132,7 +132,7 @@ class ExperimentWidget(ttk.Frame):
 
             pour_out_pump_choice = ttk.Combobox(
                 frame,
-                values=list(self.store.pump_widgets.keys()),
+                values=self.store.pump_names,
                 state="readonly",
             )
             pour_out_pump_choice.grid(row=1, column=1, sticky=c.EW, padx=self.PADX, pady=self.PADY)
@@ -140,7 +140,7 @@ class ExperimentWidget(ttk.Frame):
 
             spectrophotometer_choice = ttk.Combobox(
                 frame,
-                values=list(self.store.spectrophotometer_widgets.keys()),
+                values=self.store.spectrophotometer_names,
                 state="readonly",
             )
             spectrophotometer_choice.grid(row=2, column=1, sticky=c.EW, padx=self.PADX, pady=self.PADY)
