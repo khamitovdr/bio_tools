@@ -1,5 +1,5 @@
-from experiment import Experiment  # Import the Experiment class
-from tools import get_connected_devices  # Import the get_connected_devices function
+from bioexperiment_suite.experiment import Experiment  # Import the Experiment class
+from bioexperiment_suite.tools import get_connected_devices  # Import the get_connected_devices function
 
 # Define the experiment parameters
 TOTAL_EXPERIMENT_DURATION_HOURS = 24  # Total duration of the experiment in hours
@@ -38,7 +38,7 @@ experiment = Experiment()
 
 # Configure the experiment with measurements and actions
 for i in range(n_solution_refreshes):  # Loop over the number of solution refreshes
-    for i in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
+    for j in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
         experiment.add_measurement(
             spectrophotometer.get_temperature, measurement_name="Temperature (C)"
         )  # Measure temperature
