@@ -57,7 +57,7 @@ for i in range(n_solution_refreshes):  # Loop over the number of solution refres
     experiment.add_wait(MEASUREMENT_INTERVAL_MINUTES * 60)  # Wait after refreshing the solution
 
 # Run the experiment
-experiment.run()
+experiment.start()
 
 # After the experiment is complete, the results can be accessed from the experiment object by assigned names
 print(experiment.measurements["Temperature (C)"])
