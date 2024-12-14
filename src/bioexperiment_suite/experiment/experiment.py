@@ -111,7 +111,7 @@ class WaitAction:
 
 class ConditionalAction:
     """Class to define action to be executed based on a condition."""
-    
+
     def __init__(self, action: Action, condition: Condition):
         """Initialize the conditional action with the condition and the action to be executed
 
@@ -128,6 +128,7 @@ class ConditionalAction:
         if self.condition.check_condition():
             return self.action
         return None
+
 
 class Experiment:
     """Class to define an experiment with actions and measurements to be executed in sequence.
@@ -156,41 +157,64 @@ class Experiment:
         self.output_dir = output_dir
         logger.debug(f"Output directory specified: {output_dir}")
 
-    def add_action(self, func: Callable, *args: Any, **kwargs: Any):
+    def add_action(self, func: Callable, condition: Condition | None = None, *args: Any, **kwargs: Any):
         """Add an action to the experiment.
 
         The action will be executed in sequence when the experiment is run.
 
         :param func: The function to be executed
+        :param condition: The condition to evaluate before executing the action
         :param args: The positional arguments to be passed to the function
         :param kwargs: The keyword arguments to be passed to the function
         """
         self._validate_types(func, *args, **kwargs)
-        self.actions.append(Action(func, *args, **kwargs))
+        action = Action(func, *args, **kwargs)
+        if condition is not None:
+            self.actions.append(ConditionalAction(action, condition))
+            logger.debug(f"Conditional action added to experiment: {func.__name__} with condition: {condition}")
+            return
+
+        self.actions.append(action)
         logger.debug(f"Action added to experiment: {func.__name__}")
 
-    def add_measurement(self, func: Callable, measurement_name: str, *args: Any, **kwargs: Any):
+    def add_measurement(
+        self, func: Callable, measurement_name: str, condition: Condition | None = None, *args: Any, **kwargs: Any
+    ):
         """Add a measurement to the experiment.
 
         The measurement will be executed in sequence when the experiment is run, and the result will be stored.
 
         :param func: The function to be executed
         :param measurement_name: The name of the measured value
+        :param condition: The condition to evaluate before executing the action
         :param args: The positional arguments to be passed to the function
         :param kwargs: The keyword arguments to be passed to the function
         """
         self._validate_types(func, *args, **kwargs)
-        self.actions.append(Measurement(func, measurement_name, *args, **kwargs))
+        measurement = Measurement(func, measurement_name, *args, **kwargs)
+        if condition is not None:
+            self.actions.append(ConditionalAction(measurement, condition))
+            logger.debug(f"Conditional measurement added to experiment: {func.__name__} with condition: {condition}")
+            return
+
+        self.actions.append(measurement)
         logger.debug(f"Measurement added to experiment: {func.__name__}")
 
-    def add_wait(self, seconds: float):
+    def add_wait(self, seconds: float, condition: Condition | None = None):
         """Add a wait action to the experiment.
 
         The wait action will pause the execution of the experiment for the given amount of time.
 
         :param seconds: The number of seconds to wait
+        :param condition: The condition to evaluate before executing the action
         """
-        self.actions.append(WaitAction(seconds))
+        wait_action = WaitAction(seconds)
+        if condition is not None:
+            self.actions.append(ConditionalAction(wait_action, condition))
+            logger.debug(f"Conditional wait added to experiment: {seconds} seconds with condition: {condition}")
+            return
+
+        self.actions.append(wait_action)
         logger.debug(f"Wait action added to experiment: {seconds} seconds")
 
     def _perform_action(self, action: Action | WaitAction | ConditionalAction, step: int) -> bool:
