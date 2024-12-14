@@ -1,7 +1,41 @@
-from typing import Callable, SupportsIndex, Optional
+from typing import Callable, SupportsIndex, Optional, TypeAlias
 from statistics import median
 
-from bioexperiment_suite.experiment import Experiment
+RelationFunction: TypeAlias = Callable[[float], bool]
+
+
+class Relation:
+    """Class to define common relations for conditional actions."""
+
+    @staticmethod
+    def EQUALS_TO(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric equals the given value."""
+        return lambda x: x == value
+
+    @staticmethod
+    def GREATER_THAN(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric is greater than the given value."""
+        return lambda x: x > value
+
+    @staticmethod
+    def LESS_THAN(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric is less than the given value."""
+        return lambda x: x < value
+
+    @staticmethod
+    def GREATER_THAN_OR_EQUALS_TO(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric is greater than or equal to the given value."""
+        return lambda x: x >= value
+
+    @staticmethod
+    def LESS_THAN_OR_EQUALS_TO(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric is less than or equal to the given value."""
+        return lambda x: x <= value
+
+    @staticmethod
+    def NOT_EQUALS_TO(value: float) -> RelationFunction:
+        """Returns a relation checking if a metric does not equal the given value."""
+        return lambda x: x != value
 
 
 class Statistic:
@@ -36,24 +70,3 @@ class Statistic:
     @staticmethod
     def MIN(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: min(measurement[-window_size:]) if window_size else min(measurement)
-
-
-class Metric:
-    """Class to define a metric to be used during the experiment run to make dynamic decisions"""
-
-    def __init__(self, experiment: Experiment, measurement_name: str, statistic: Statistic | None = Statistic.LAST()):
-        """Initialize the metric to be used in the experiment
-
-        :param experiment: The experiment object
-        :param measurement_name: The name of the measurement in the experiment to use for the metric calculation
-        :param statistic: The statistic to apply to the measurement values
-        """
-        self.measurements = experiment.measurements
-        self.measurement_name = measurement_name
-        self.statistic = statistic
-
-    def _measurement_values(self) -> tuple[float]:
-        return tuple(zip(*self.measurements[self.measurement_name]))[1]
-
-    def get_value(self) -> int | float:
-        return self.statistic(self._measurement_values())
