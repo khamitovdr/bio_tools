@@ -36,6 +36,6 @@ def get_serial_ports() -> list[str]:
     #     except (OSError, serial.SerialException):
     #         pass
 
-    result = [f"COM{i}" for i in range(3)]
+    result = [f"COM{i}" for i in (0, 1, 2, 4)]
     logger.debug(f"Serial ports found: {result}")
     return result
