@@ -172,8 +172,8 @@ class ExperimentWidget(ttk.Frame):
                     measurement_name="Temperature (C)",
                 )
                 self.store.experiment.add_measurement(
-                    self.spectrophotometer.measure_absorbance,  # type: ignore
-                    measurement_name="Absorbance",
+                    self.spectrophotometer.measure_optical_density,  # type: ignore
+                    measurement_name="Optical density",
                 )
                 self.store.experiment.add_wait(self.measurement_interval_minutes.get() * 60)
 

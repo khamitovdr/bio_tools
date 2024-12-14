@@ -43,8 +43,8 @@ for i in range(n_solution_refreshes):  # Loop over the number of solution refres
             spectrophotometer.get_temperature, measurement_name="Temperature (C)"
         )  # Measure temperature
         experiment.add_measurement(
-            spectrophotometer.measure_absorbance, measurement_name="Absorbance"
-        )  # Measure absorbance
+            spectrophotometer.measure_optical_density, measurement_name="Optical density"
+        )  # Measure optical density
         experiment.add_wait(MEASUREMENT_INTERVAL_MINUTES * 60)  # Wait for the measurement interval
 
     # Add actions to refresh the solution
@@ -61,4 +61,4 @@ experiment.start()
 
 # After the experiment is complete, the results can be accessed from the experiment object by assigned names
 print(experiment.measurements["Temperature (C)"])
-print(experiment.measurements["Absorbance"])
+print(experiment.measurements["Optical density"])

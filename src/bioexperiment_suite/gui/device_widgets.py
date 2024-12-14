@@ -188,8 +188,8 @@ class SpectrophotometerWidget(DeviceWidget):
         self.temperature = DoubleVar()
         self.temperature_updated = StringVar(value="-")
 
-        self.absorbance = DoubleVar()
-        self.absorbance_updated = StringVar(value="-")
+        self.optical_density = DoubleVar()
+        self.optical_density_updated = StringVar(value="-")
 
         self.create_widgets()
 
@@ -229,17 +229,17 @@ class SpectrophotometerWidget(DeviceWidget):
         )
         temperature_display.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
-        absorbance_display = self.create_measurement_display(
-            "Absorbance", self.absorbance, self.absorbance_updated, self.measure_absorbance
+        optical_density_display = self.create_measurement_display(
+            "Optical density", self.optical_density, self.optical_density_updated, self.measure_optical_density
         )
-        absorbance_display.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
+        optical_density_display.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
     def measure_temperature(self):
         temperature = self.spectrophotometer.get_temperature()
         self.temperature_updated.set(datetime.now().strftime("%H:%M:%S"))
         self.temperature.set(round(temperature, 2))
 
-    def measure_absorbance(self):
-        absorbance = self.spectrophotometer.measure_absorbance()
-        self.absorbance_updated.set(datetime.now().strftime("%H:%M:%S"))
-        self.absorbance.set(round(absorbance, 5))
+    def measure_optical_density(self):
+        optical_density = self.spectrophotometer.measure_optical_density()
+        self.optical_density_updated.set(datetime.now().strftime("%H:%M:%S"))
+        self.optical_density.set(round(optical_density, 5))

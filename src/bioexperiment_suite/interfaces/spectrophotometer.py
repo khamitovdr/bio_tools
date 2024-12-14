@@ -38,36 +38,36 @@ class Spectrophotometer(SerialConnection):
         self.write_to_serial_port(self.interface.commands.start_measurement.request)
         logger.debug("Start measurement command sent")
 
-    def _get_absorbance(self) -> float | None:
-        """Gets the absorbance of the sample.
+    def _get_optical_density(self) -> float | None:
+        """Gets the optical density of the sample.
 
-        :returns: The absorbance of the sample
+        :returns: The optical density of the sample
         """
-        logger.debug("Getting absorbance")
-        absorbance_response = self.communicate_with_serial_port(
+        logger.debug("Getting optical density")
+        optical_density_response = self.communicate_with_serial_port(
             self.interface.commands.get_measurement_result.request,
             self.interface.commands.get_measurement_result.response_len,
         )
-        logger.debug(f"Absorbance response: {list(absorbance_response)}")
-        if not absorbance_response:
+        logger.debug(f"Optical density response: {list(optical_density_response)}")
+        if not optical_density_response:
             return None
-        integer, fractional = absorbance_response[2:]
-        absorbance = integer + (fractional / 100)
-        logger.debug(f"Absorbance: {absorbance}")
-        return absorbance
+        integer, fractional = optical_density_response[2:]
+        optical_density = integer + (fractional / 100)
+        logger.debug(f"Optical density: {optical_density}")
+        return optical_density
 
-    def measure_absorbance(self) -> float:
-        """Measures the absorbance of the sample.
+    def measure_optical_density(self) -> float:
+        """Measures the optical density of the sample.
 
-        :returns: The absorbance of the sample
+        :returns: The optical density of the sample
         """
-        logger.debug("Measuring absorbance")
+        logger.debug("Measuring optical density")
         self._send_start_measurement_command()
-        logger.debug("Absorbance not ready yet, waiting...")
+        logger.debug("Optical density not ready yet, waiting...")
         sleep(4)
-        absorbance = self._get_absorbance()
-        if absorbance is None:
-            logger.error("Absorbance could not be measured")
-            raise Exception("Absorbance could not be measured")
+        optical_density = self._get_optical_density()
+        if optical_density is None:
+            logger.error("Optical density could not be measured")
+            raise Exception("Optical density could not be measured")
 
-        return absorbance
+        return optical_density
