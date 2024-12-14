@@ -7,6 +7,7 @@ from threading import Event, Thread
 from typing import Any, Callable, get_type_hints
 
 from bioexperiment_suite.loader import logger
+from bioexperiment_suite.experiment import Condition
 
 
 class Action:
@@ -108,6 +109,26 @@ class WaitAction:
         logger.debug(f"Wait action created: {seconds} seconds")
 
 
+class ConditionalAction:
+    """Class to define action to be executed based on a condition."""
+    
+    def __init__(self, action: Action, condition: Condition):
+        """Initialize the conditional action with the condition and the action to be executed
+
+        :param condition: The condition to evaluate
+        :param action: The action to execute if the condition is met
+        """
+        self.action = action
+        self.condition = condition
+        logger.debug(f"Conditional action created: {self.condition} -> {self.action}")
+
+    def get_action(self) -> Action | None:
+        """Return the action to be executed if the
+        condition is met, otherwise return None."""
+        if self.condition.check_condition():
+            return self.action
+        return None
+
 class Experiment:
     """Class to define an experiment with actions and measurements to be executed in sequence.
 
@@ -117,7 +138,7 @@ class Experiment:
 
     def __init__(self, output_dir: os.PathLike | None = None):
         """Initialize the experiment with an empty list of actions and measurements"""
-        self.actions: list[Action | WaitAction] = []
+        self.actions: list[Action | WaitAction | ConditionalAction] = []
         self.measurements: dict[str, list[tuple[datetime, Any]]] = defaultdict(list)
         self.current_time: datetime | None = (
             None  # Time to keep track of the experiment progress. Initializes on start.
@@ -172,7 +193,7 @@ class Experiment:
         self.actions.append(WaitAction(seconds))
         logger.debug(f"Wait action added to experiment: {seconds} seconds")
 
-    def _perform_action(self, action: Action | WaitAction, step: int) -> bool:
+    def _perform_action(self, action: Action | WaitAction | ConditionalAction, step: int) -> bool:
         """Perform the action by executing it or waiting for the specified time.
 
         :param action: The action to perform
@@ -200,6 +221,13 @@ class Experiment:
                 time.sleep(0.1)
 
             self.current_time += action.wait_time
+
+        elif isinstance(action, ConditionalAction):
+            action_to_execute = action.get_action()
+            if action_to_execute is not None:
+                self._perform_action(action_to_execute, step)
+            else:
+                logger.debug("Condition not met, skipping action")
 
         else:
             logger.error(f"Unknown action type: {type(action)}")
