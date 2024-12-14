@@ -11,32 +11,32 @@ class Relation:
     """Class to define common relations for conditional actions."""
 
     @staticmethod
-    def equals_to(value: float) -> RelationFunction:
+    def EQUALS_TO(value: float) -> RelationFunction:
         """Returns a relation checking if a metric equals the given value."""
         return lambda x: x == value
 
     @staticmethod
-    def greater_than(value: float) -> RelationFunction:
+    def GREATER_THAN(value: float) -> RelationFunction:
         """Returns a relation checking if a metric is greater than the given value."""
         return lambda x: x > value
 
     @staticmethod
-    def less_than(value: float) -> RelationFunction:
+    def LESS_THAN(value: float) -> RelationFunction:
         """Returns a relation checking if a metric is less than the given value."""
         return lambda x: x < value
 
     @staticmethod
-    def greater_than_or_equals_to(value: float) -> RelationFunction:
+    def GREATER_THAN_OR_EQUALS_TO(value: float) -> RelationFunction:
         """Returns a relation checking if a metric is greater than or equal to the given value."""
         return lambda x: x >= value
 
     @staticmethod
-    def less_than_or_equals_to(value: float) -> RelationFunction:
+    def LESS_THAN_OR_EQUALS_TO(value: float) -> RelationFunction:
         """Returns a relation checking if a metric is less than or equal to the given value."""
         return lambda x: x <= value
 
     @staticmethod
-    def not_equals_to(value: float) -> RelationFunction:
+    def NOT_EQUALS_TO(value: float) -> RelationFunction:
         """Returns a relation checking if a metric does not equal the given value."""
         return lambda x: x != value
 
