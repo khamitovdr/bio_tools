@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, TypeAlias
 from bioexperiment_suite.experiment import Metric
 
@@ -65,3 +67,8 @@ class Condition:
         """
         metric_value = self.metric.get_value()
         return self.relation(metric_value)
+    
+    @property
+    def negation(self) -> Condition:
+        """Return a new condition that is the negation of this condition."""
+        return Condition(self.metric, lambda x: not self.relation(x))
