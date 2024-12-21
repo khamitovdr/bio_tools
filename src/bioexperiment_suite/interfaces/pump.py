@@ -1,7 +1,11 @@
+from time import sleep
+
 from bioexperiment_suite.loader import device_interfaces, logger
 from bioexperiment_suite.settings import settings
 
 from .serial_connection import SerialConnection
+
+UNACCOUNTED_FOR_TIME_SEC = 1
 
 
 class Pump(SerialConnection):
@@ -73,12 +77,19 @@ class Pump(SerialConnection):
         data_to_send = [10, 0, 1, speed_param, 0]
         self.write_to_serial_port(data_to_send)
 
-    def pour_in_volume(self, volume: int | float, flow_rate: int | float | None = None, direction: str = "left"):
+    def pour_in_volume(
+        self,
+        volume: int | float,
+        flow_rate: int | float | None = None,
+        direction: str = "left",
+        blocking_mode: bool = True,
+    ):
         """Pours in the specified volume of liquid.
 
         :param volume: The volume to pour in mL
         :param flow_rate: The flow rate of the pump in mL/min
         :param direction: The direction of the pump, either "left" or "right". Defaults to "left"
+        :param blocking_mode: Whether to wait for the pump to finish pouring in the volume. Defaults to True
         """
 
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
@@ -94,6 +105,10 @@ class Pump(SerialConnection):
 
         data_to_send = [direction_byte] + self._compute_step_volume_bytes(volume)
         self.write_to_serial_port(data_to_send)
+
+        if blocking_mode:
+            sleep_time = (volume / flow_rate) * 60
+            sleep(sleep_time + UNACCOUNTED_FOR_TIME_SEC)
 
     def start_continuous_rotation(self, flow_rate: int | float | None = None, direction: str = "left"):
         """Starts the continuous rotation of the pump.

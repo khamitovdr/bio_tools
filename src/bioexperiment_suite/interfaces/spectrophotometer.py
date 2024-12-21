@@ -80,7 +80,7 @@ class Spectrophotometer(SerialConnection):
         logger.debug("Measuring optical density")
         self._send_start_measurement_command()
         logger.debug("Optical density not ready yet, waiting...")
-        sleep(4 if not settings.EMULATE_DEVICES else 1)
+        sleep(3 if not settings.EMULATE_DEVICES else 1)
         optical_density = self._get_optical_density()
         if optical_density is None:
             logger.error("Optical density could not be measured")
