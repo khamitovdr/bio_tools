@@ -1,6 +1,7 @@
-from bioexperiment_suite.interfaces import SerialConnection
 from bioexperiment_suite.loader import device_interfaces, logger
 from bioexperiment_suite.settings import settings
+
+from .serial_connection import SerialConnection
 
 
 class Pump(SerialConnection):

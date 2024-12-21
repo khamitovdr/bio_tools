@@ -9,9 +9,10 @@ from threading import Event, Thread
 from typing import Any, Callable, get_type_hints
 
 from bioexperiment_suite.loader import logger
-from bioexperiment_suite.experiment.actions import Action, WaitAction, Measurement
-from bioexperiment_suite.experiment.collections import Statistic, RelationFunction
-    
+
+from .actions import Action, WaitAction, Measurement
+from .collections import Statistic, RelationFunction
+
 
 class Metric:
     """Class to define a metric to be used during the experiment run to make dynamic decisions"""
@@ -32,6 +33,7 @@ class Metric:
 
     def get_value(self) -> int | float:
         return self.statistic(self._measurement_values())
+
 
 class Condition:
     """Class to define a condition to determine if an action should be executed."""
@@ -59,12 +61,13 @@ class Condition:
         """
         metric_value = self.metric.get_value()
         return self.relation(metric_value)
-    
+
     @property
     def negation(self) -> Condition:
         """Return a new condition that is the negation of this condition."""
         return Condition(self.metric, lambda x: not self.relation(x))
-    
+
+
 class ConditionalAction:
     """Class to define action to be executed based on a condition."""
 

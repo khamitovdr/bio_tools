@@ -1,7 +1,8 @@
 from bioexperiment_suite.interfaces import Pump, SerialConnection, Spectrophotometer
 from bioexperiment_suite.loader import device_interfaces, logger
-from bioexperiment_suite.tools.serial_port import get_serial_ports
 from bioexperiment_suite.settings import settings
+
+from .serial_port import get_serial_ports
 
 
 def identify_device(port: str) -> str | None:
@@ -63,8 +64,10 @@ if settings.EMULATE_DEVICES:
         device_names = ["pump", "spectrophotometer"]
         port_number = int(port[-1])
         return device_names[port_number % 2]
-    
-    def get_connected_devices(n_pumps_n_spectrophotometers: tuple[int, int]) -> tuple[list[Pump], list[Spectrophotometer]]:
+
+    def get_connected_devices(
+        n_pumps_n_spectrophotometers: tuple[int, int],
+    ) -> tuple[list[Pump], list[Spectrophotometer]]:
         """\"Identifies\" the EMULATED devices connected to the FAKE serial ports on the system.
 
         :param n_pumps_n_spectrophotometers: A tuple containing the number of FAKE pumps and spectrophotometers to find
