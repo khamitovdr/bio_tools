@@ -83,6 +83,8 @@ class Pump(SerialConnection):
         flow_rate: int | float | None = None,
         direction: str = "left",
         blocking_mode: bool = True,
+        info_log_message: str | None = None,
+        info_log_level: str = "INFO",
     ):
         """Pours in the specified volume of liquid.
 
@@ -102,6 +104,8 @@ class Pump(SerialConnection):
         self._set_flow_rate(flow_rate)  # type: ignore
 
         logger.debug(f"Pouring in {volume:.3f} mL at flow rate {flow_rate:.3f} mL/min")
+        if info_log_message:
+            logger.log(info_log_level, info_log_message)
 
         data_to_send = [direction_byte] + self._compute_step_volume_bytes(volume)
         self.write_to_serial_port(data_to_send)
