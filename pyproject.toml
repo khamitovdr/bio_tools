@@ -27,6 +27,7 @@ loguru = "^0.7.2"
 munch = "^4.0.0"
 pyserial = "^3.5"
 ttkbootstrap = { version = "^1.10.1", optional = true }
+python-dotenv = "^1.0.1"
 
 [tool.poetry.extras]
 gui = ["ttkbootstrap"]

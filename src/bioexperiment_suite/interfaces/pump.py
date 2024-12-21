@@ -1,6 +1,6 @@
+from bioexperiment_suite.interfaces import SerialConnection
 from bioexperiment_suite.loader import device_interfaces, logger
-
-from .serial_connection import SerialConnection
+from bioexperiment_suite.settings import settings
 
 
 class Pump(SerialConnection):
@@ -18,15 +18,20 @@ class Pump(SerialConnection):
         super(Pump, self).__init__(port, baudrate, timeout_sec)
         self._compute_calibration_volume()
 
-    def _compute_calibration_volume(self):
+    def _compute_calibration_volume(self) -> None:
         """Computes the calibration volume of the pump."""
-        # identification_response = self.communicate_with_serial_port(
-        #     self.interface.identification_signal,
-        #     self.interface.identification_response_len,
-        # )
-        # self._calibration_volume = self._bytes_to_int(identification_response[1:]) / 10**5
-        self._calibration_volume = 1.0
-        logger.debug(f"FAKE calibration volume computed: {self._calibration_volume:.3f}")
+
+        if settings.EMULATE_DEVICES:
+            self._calibration_volume = 1.0
+            logger.debug(f"FAKE calibration volume computed: {self._calibration_volume:.3f}")
+            return
+
+        identification_response = self.communicate_with_serial_port(
+            self.interface.identification_signal,
+            self.interface.identification_response_len,
+        )
+        self._calibration_volume = self._bytes_to_int(identification_response[1:]) / 10**5
+        logger.debug(f"Calibration volume computed: {self._calibration_volume:.3f}")
 
     def _compute_speed_param_from_flow(self, flow: int | float) -> int:
         """Computes the speed parameter from the real speed of the pump.
