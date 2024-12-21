@@ -17,4 +17,3 @@ def get_settings():
 
 
 settings = get_settings()
-print(settings)
