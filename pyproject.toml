@@ -22,11 +22,12 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.13"
 loguru = "^0.7.2"
 munch = "^4.0.0"
 pyserial = "^3.5"
 ttkbootstrap = { version = "^1.10.1", optional = true }
+python-dotenv = "^1.0.1"
 
 [tool.poetry.extras]
 gui = ["ttkbootstrap"]
@@ -39,6 +40,7 @@ munch-stubs = "^0.1.2"
 ruff = "^0.5.4"
 types-pyserial = "^3.5.0.20240527"
 notebook = "^7.3.1"
+pyinstaller = "^6.9.0"
 
 [tool.poetry.group.docs]
 optional = true

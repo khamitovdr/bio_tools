@@ -1,6 +1,8 @@
+from random import random
 from time import sleep
 
 from bioexperiment_suite.loader import device_interfaces, logger
+from bioexperiment_suite.settings import settings
 
 from .serial_connection import SerialConnection
 
@@ -23,6 +25,13 @@ class Spectrophotometer(SerialConnection):
 
         :returns: The temperature in degrees Celsius
         """
+
+        if settings.EMULATE_DEVICES:
+            logger.debug("Getting FAKE temperature")
+            temperature = random() * 10 + 20
+            logger.debug(f"FAKE temperature: {temperature:.2f}")
+            return temperature
+
         logger.debug("Getting temperature")
         temperature_response = self.communicate_with_serial_port(
             self.interface.commands.get_temperature.request,
@@ -31,6 +40,7 @@ class Spectrophotometer(SerialConnection):
         logger.debug(f"Temperature response: {list(temperature_response)}")
         integer, fractional = temperature_response[2:]
         temperature = integer + (fractional / 100)
+        logger.debug(f"Temperature: {temperature:.2f}")
         return temperature
 
     def _send_start_measurement_command(self):
@@ -43,7 +53,13 @@ class Spectrophotometer(SerialConnection):
 
         :returns: The optical density of the sample
         """
-        logger.debug("Getting optical density")
+
+        if settings.EMULATE_DEVICES:
+            logger.debug("Getting FAKE optical density")
+            optical_density = random()
+            logger.debug(f"Fake optical density: {optical_density:.5f}")
+            return optical_density
+
         optical_density_response = self.communicate_with_serial_port(
             self.interface.commands.get_measurement_result.request,
             self.interface.commands.get_measurement_result.response_len,
@@ -53,7 +69,7 @@ class Spectrophotometer(SerialConnection):
             return None
         integer, fractional = optical_density_response[2:]
         optical_density = integer + (fractional / 100)
-        logger.debug(f"Optical density: {optical_density}")
+        logger.debug(f"Optical density: {optical_density:.5f}")
         return optical_density
 
     def measure_optical_density(self) -> float:
@@ -64,7 +80,7 @@ class Spectrophotometer(SerialConnection):
         logger.debug("Measuring optical density")
         self._send_start_measurement_command()
         logger.debug("Optical density not ready yet, waiting...")
-        sleep(4)
+        sleep(4 if not settings.EMULATE_DEVICES else 1)
         optical_density = self._get_optical_density()
         if optical_density is None:
             logger.error("Optical density could not be measured")

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import wraps
 from time import sleep
 from typing import Callable
@@ -5,6 +7,7 @@ from typing import Callable
 import serial
 
 from bioexperiment_suite.loader import logger
+from bioexperiment_suite.settings import settings
 
 
 class SerialConnection:
@@ -24,8 +27,14 @@ class SerialConnection:
         self.timeout_sec = timeout_sec
         self._create_serial_connection()
 
-    def _create_serial_connection(self):
+    def _create_serial_connection(self) -> None:
         """Creates a serial connection with the specified parameters."""
+
+        if settings.EMULATE_DEVICES:
+            logger.info(f"FAKE serial connection established with {self.port}")
+            sleep(1)
+            return
+
         self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout_sec)
         logger.info(f"Serial connection established with {self.port}")
         sleep(3)
@@ -40,7 +49,7 @@ class SerialConnection:
         """
 
         @wraps(method)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: SerialConnection, *args, **kwargs):
             try:
                 return method(self, *args, **kwargs)
             except serial.SerialException:
@@ -56,6 +65,10 @@ class SerialConnection:
 
         :param data_to_send: The data to send to the serial port
         """
+        if settings.EMULATE_DEVICES:
+            logger.debug(f"Data sent to FAKE serial port: {data_to_send}")
+            return
+
         bytes_to_send = bytes(data_to_send)
         self.serial.write(bytes_to_send)
         logger.debug(f"Data sent to serial port: {data_to_send}")
@@ -68,6 +81,11 @@ class SerialConnection:
 
         :returns: The response from the serial port
         """
+        if settings.EMULATE_DEVICES:
+            response = bytes([0x00] * response_bytes)
+            logger.debug(f"Data received from FAKE serial port: {list(response)}")
+            return response
+
         response = self.serial.read(response_bytes)
         logger.debug(f"Data received from serial port: {list(response)}")
         return response
@@ -109,5 +127,9 @@ class SerialConnection:
 
     def __del__(self):
         """Closes the serial connection when the object is deleted."""
+        if settings.EMULATE_DEVICES:
+            logger.debug(f"Closing FAKE serial connection with {self.port}")
+            return
+
         logger.debug(f"Closing serial connection with {self.port}")
         self.serial.close()
