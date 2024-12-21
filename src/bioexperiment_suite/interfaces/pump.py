@@ -5,6 +5,8 @@ from bioexperiment_suite.settings import settings
 
 from .serial_connection import SerialConnection
 
+UNACCOUNTED_FOR_TIME_SEC = 1
+
 
 class Pump(SerialConnection):
     """Class to handle communication with a pump connected to a serial port."""
@@ -106,7 +108,7 @@ class Pump(SerialConnection):
 
         if blocking_mode:
             sleep_time = (volume / flow_rate) * 60
-            sleep(sleep_time)
+            sleep(sleep_time + UNACCOUNTED_FOR_TIME_SEC)
 
     def start_continuous_rotation(self, flow_rate: int | float | None = None, direction: str = "left"):
         """Starts the continuous rotation of the pump.
