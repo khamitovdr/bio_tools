@@ -1,6 +1,15 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 from bioexperiment_suite.experiment.collections import Relation, Statistic
 from bioexperiment_suite.experiment import Experiment, Condition
 from bioexperiment_suite.tools import get_connected_devices
+
+
+# In[ ]:
 
 
 # Define the experiment parameters
@@ -26,6 +35,9 @@ IN = "right"
 OUT = "left"
 
 
+# In[ ]:
+
+
 # Ensure intervals are valid
 assert (
     SOLUTION_REFRESH_INTERVAL_MIN % MEASUREMENT_INTERVAL_MINUTES == 0
@@ -43,13 +55,21 @@ n_measurements_per_solution_refresh = (
 )  # Number of measurements per refresh
 
 
+# In[ ]:
+
+
 # Retrieve connected devices by checking the serial ports
 pumps, spectrophotometers = get_connected_devices()
 
 # Unpack discovered devices
 (spectrophotometer,) = spectrophotometers  # Suppose we have one spectrophotometer
 
+
+# In[ ]:
+
+
 # Comparison of found pumps
+
 print("""
 Please choose the role of currently rotating pump:
 
@@ -78,9 +98,12 @@ for name in ["pump_out", "pump_food", "pump_drug"]:
     assert name in locals(), f"Please assign a pump to the variable {name}"
 
 
+# In[ ]:
+
+
 # Initialize the experiment
 experiment = Experiment(
-    output_dir=".",  # Define the output directory here before running the script
+    output_dir=".", # Define the output directory here before running the script
 )
 
 # Define the metrics
@@ -95,6 +118,10 @@ od_exceeded_threshold = Condition(
     relation=Relation.GREATER_THAN(OPTICAL_DENSITY_THRESHOLD),
 )
 od_not_exceeded_threshold = od_exceeded_threshold.negation
+
+
+# In[ ]:
+
 
 # Add the initial actions to pour out the excessive solution and pour in the food
 experiment.add_action(
@@ -122,14 +149,20 @@ for _ in range(n_solution_refreshes):  # Loop over the number of solution refres
         volume=PUMP_DRUG_VOLUME_ML,
         flow_rate=FLOW_RATE_ML_PER_MINUTE,
         direction=IN,
-        condition=od_exceeded_threshold,  # Only add the drug if the OD exceeded the threshold
+        condition=od_exceeded_threshold, # Only add the drug if the OD exceeded the threshold
+        info_log_message="Drug added",
     )
     experiment.add_action(
         pump_food.pour_in_volume,
         volume=PUMP_FOOD_VOLUME_ML,
         flow_rate=FLOW_RATE_ML_PER_MINUTE,
         direction=IN,
-        condition=od_not_exceeded_threshold,  # Only add the food if the OD did not exceed the threshold
+        condition=od_not_exceeded_threshold, # Only add the food if the OD did not exceed the threshold
+        info_log_message="Food added",
     )
 
-experiment.start(start_in_background=False)  # Start the experiment in idle mode
+
+# In[ ]:
+
+
+experiment.start(start_in_background=False)  # Start the experiment in the background
