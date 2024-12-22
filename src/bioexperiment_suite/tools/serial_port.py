@@ -37,6 +37,8 @@ def get_serial_ports() -> list[str]:
         except (OSError, serial.SerialException):
             pass
 
+    return result
+
 
 if settings.EMULATE_DEVICES:
     # Overwrite the function if EMULATE_DEVICES is True
