@@ -7,7 +7,7 @@ line-length = 120
 
 [tool.poetry]
 name = "bioexperiment-suite"
-version = "0.4.0"
+version = "0.4.1"
 description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
