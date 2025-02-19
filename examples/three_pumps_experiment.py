@@ -69,7 +69,7 @@ pumps, spectrophotometers = get_connected_devices()
 
 
 # Comparison of found pumps
-
+assert len(pumps) == 3, f"{len(pumps)} pumps found! Exactly 3 pumps is needed for this experiment"
 print("""
 Please choose the role of currently rotating pump:
 
