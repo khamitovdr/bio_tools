@@ -54,6 +54,7 @@ n_solution_refreshes = (
 n_measurements_per_solution_refresh = (
     SOLUTION_REFRESH_INTERVAL_MIN // MEASUREMENT_INTERVAL_MINUTES
 )  # Number of measurements per refresh
+delay_time = (PUMP_OUT_VOLUME_ML / FLOW_RATE_ML_PER_MINUTE) * 60 + 1 + INWARDS_PUMP_DELAY_SEC
 
 
 # In[ ]:
@@ -128,6 +129,7 @@ od_not_exceeded_threshold = od_exceeded_threshold.negation
 experiment.add_action(
     pump_out.pour_in_volume, volume=PUMP_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=OUT
 )
+experiment.add_wait(delay_time)
 experiment.add_action(
     pump_food.pour_in_volume, volume=PUMP_FOOD_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=IN
 )
@@ -136,7 +138,7 @@ experiment.add_action(
 for _ in range(n_solution_refreshes):  # Loop over the number of solution refreshes
     for i in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
         wait_time = (
-            MEASUREMENT_INTERVAL_MINUTES * 60 - INWARDS_PUMP_DELAY_SEC
+            MEASUREMENT_INTERVAL_MINUTES * 60 - delay_time
             if i == 0 else MEASUREMENT_INTERVAL_MINUTES * 60
         )
         experiment.add_wait(wait_time)  # Wait for the measurement interval
@@ -147,7 +149,7 @@ for _ in range(n_solution_refreshes):  # Loop over the number of solution refres
     experiment.add_action(
         pump_out.pour_in_volume, volume=PUMP_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=OUT
     )
-    experiment.add_wait(INWARDS_PUMP_DELAY_SEC)
+    experiment.add_wait(delay_time)
 
     # Add the actions to pour in the drug or food based on the condition
     experiment.add_action(
