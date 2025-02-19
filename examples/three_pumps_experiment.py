@@ -15,6 +15,7 @@ from bioexperiment_suite.tools import get_connected_devices
 # Define the experiment parameters
 TOTAL_EXPERIMENT_DURATION_HOURS = 24  # Total duration of the experiment in hours
 SOLUTION_REFRESH_INTERVAL_MIN = 60  # Interval for refreshing the solution in minutes
+INWARDS_PUMP_DELAY_SEC = 10  # Delay before "food" or "drug" pump strts working
 
 MEASUREMENT_INTERVAL_MINUTES = 5  # Interval for taking measurements in minutes
 
@@ -133,15 +134,20 @@ experiment.add_action(
 
 # Add the main experiment loop
 for _ in range(n_solution_refreshes):  # Loop over the number of solution refreshes
-    for _ in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
+    for i in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
+        wait_time = (
+            MEASUREMENT_INTERVAL_MINUTES * 60 - INWARDS_PUMP_DELAY_SEC
+            if i == 0 else MEASUREMENT_INTERVAL_MINUTES * 60
+        )
+        experiment.add_wait(wait_time)  # Wait for the measurement interval
+        
         experiment.add_measurement(spectrophotometer.measure_optical_density, measurement_name=OPTICAL_DENSITY)
         experiment.add_measurement(spectrophotometer.get_temperature, measurement_name=TEMPERATURE)
-
-        experiment.add_wait(MEASUREMENT_INTERVAL_MINUTES * 60)  # Wait for the measurement interval
 
     experiment.add_action(
         pump_out.pour_in_volume, volume=PUMP_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=OUT
     )
+    experiment.add_wait(INWARDS_PUMP_DELAY_SEC)
 
     # Add the actions to pour in the drug or food based on the condition
     experiment.add_action(
