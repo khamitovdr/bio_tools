@@ -1,7 +1,7 @@
 from time import sleep
 
 from bioexperiment_suite.loader import device_interfaces, logger
-from bioexperiment_suite.settings import settings
+from bioexperiment_suite.settings import get_settings
 
 from .serial_connection import SerialConnection
 
@@ -26,7 +26,7 @@ class Pump(SerialConnection):
     def _compute_calibration_volume(self) -> None:
         """Computes the calibration volume of the pump."""
 
-        if settings.EMULATE_DEVICES:
+        if get_settings().EMULATE_DEVICES:
             self._calibration_volume = 1.0
             logger.debug(f"FAKE calibration volume computed: {self._calibration_volume:.3f}")
             return
@@ -97,10 +97,9 @@ class Pump(SerialConnection):
         assert direction in ["left", "right"], "Invalid direction. Must be either 'left' or 'right'"
         direction_byte = 16 if direction == "left" else 17
 
-        if flow_rate is None and self.default_flow_rate is None:
-            raise ValueError("Flow rate must be set before pouring in volume or passed as an argument")
-
         flow_rate = flow_rate or self.default_flow_rate
+        if flow_rate is None:
+            raise ValueError("Flow rate must be set before pouring in volume or passed as an argument")
         self._set_flow_rate(flow_rate)  # type: ignore
 
         logger.debug(f"Pouring in {volume:.3f} mL at flow rate {flow_rate:.3f} mL/min")

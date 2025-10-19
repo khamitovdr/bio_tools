@@ -7,7 +7,7 @@ from typing import Callable
 import serial
 
 from bioexperiment_suite.loader import logger
-from bioexperiment_suite.settings import settings
+from bioexperiment_suite.settings import get_settings
 
 
 class SerialConnection:
@@ -30,7 +30,7 @@ class SerialConnection:
     def _create_serial_connection(self) -> None:
         """Creates a serial connection with the specified parameters."""
 
-        if settings.EMULATE_DEVICES:
+        if get_settings().EMULATE_DEVICES:
             logger.info(f"FAKE serial connection established with {self.port}")
             sleep(1)
             return
@@ -65,7 +65,7 @@ class SerialConnection:
 
         :param data_to_send: The data to send to the serial port
         """
-        if settings.EMULATE_DEVICES:
+        if get_settings().EMULATE_DEVICES:
             logger.debug(f"Data sent to FAKE serial port: {data_to_send}")
             return
 
@@ -81,7 +81,7 @@ class SerialConnection:
 
         :returns: The response from the serial port
         """
-        if settings.EMULATE_DEVICES:
+        if get_settings().EMULATE_DEVICES:
             response = bytes([0x00] * response_bytes)
             logger.debug(f"Data received from FAKE serial port: {list(response)}")
             return response
@@ -127,7 +127,7 @@ class SerialConnection:
 
     def __del__(self):
         """Closes the serial connection when the object is deleted."""
-        if settings.EMULATE_DEVICES:
+        if get_settings().EMULATE_DEVICES:
             logger.debug(f"Closing FAKE serial connection with {self.port}")
             return
 
