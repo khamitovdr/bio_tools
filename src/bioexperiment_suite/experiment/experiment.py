@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import inspect
+import json
 import os
 import time
 from collections import defaultdict
 from datetime import datetime
 from threading import Event, Thread
 from typing import Any, Callable, get_type_hints
+
+import websockets
+from websockets.server import WebSocketServerProtocol
 
 from bioexperiment_suite.loader import logger
 
@@ -96,7 +101,7 @@ class Experiment:
     The experiment keeps track of the time each action was executed and the measurements taken.
     """
 
-    def __init__(self, output_dir: os.PathLike | None = None):
+    def __init__(self, output_dir: os.PathLike | None = None, output_socket_port: int | None = None):
         """Initialize the experiment with an empty list of actions and measurements"""
         self.actions: list[Action | WaitAction | ConditionalAction] = []
         self.measurements: dict[str, list[tuple[datetime, Any]]] = defaultdict(list)
@@ -104,8 +109,13 @@ class Experiment:
             None  # Time to keep track of the experiment progress. Initializes on start.
         )
         self.output_dir = output_dir
+        self.output_socket_port = output_socket_port
         self._thread: Thread | None = None
         self._stop_event = Event()
+        self._websocket_clients: set[WebSocketServerProtocol] = set()
+        self._websocket_server = None
+        self._websocket_thread: Thread | None = None
+        self._websocket_loop: asyncio.AbstractEventLoop | None = None
         logger.debug("Experiment created")
 
     def create_metric(self, measurement_name: str, statistic: Statistic | None = Statistic.LAST()) -> Metric:
@@ -125,6 +135,14 @@ class Experiment:
         """
         self.output_dir = output_dir
         logger.debug(f"Output directory specified: {output_dir}")
+
+    def specify_output_socket_port(self, port: int):
+        """Specify the output socket port to stream measurements via websocket.
+
+        :param port: The port number to use for the websocket server
+        """
+        self.output_socket_port = port
+        logger.debug(f"Output socket port specified: {port}")
 
     def add_action(self, func: Callable, condition: Condition | None = None, *args: Any, **kwargs: Any):
         """Add an action to the experiment.
@@ -197,6 +215,7 @@ class Experiment:
             action.execute()
             self.measurements[action.measurement_name].append((datetime.now(), action.measured_value))
             self.write_measurement_to_csv(action.measurement_name)
+            self.write_measurements_to_socket(action.measurement_name)
         elif isinstance(action, Action):
             logger.debug(f"Executing action: {action.func.__name__}")
             action.execute()
@@ -248,6 +267,14 @@ class Experiment:
             return
 
         self._stop_event.clear()
+        
+        # Start websocket server if port is specified
+        if self.output_socket_port is not None:
+            self._websocket_thread = Thread(target=self._start_websocket_server, daemon=True)
+            self._websocket_thread.start()
+            # Give the websocket server a moment to start
+            time.sleep(0.5)
+        
         if start_in_background:
             self._thread = Thread(target=self._run)
             self._thread.start()
@@ -261,6 +288,10 @@ class Experiment:
             return
         self._stop_event.set()
         logger.info("Experiment stop signal sent")
+        
+        # Stop websocket server
+        if self.output_socket_port is not None:
+            self._stop_websocket_server()
 
     def write_measurement_to_csv(self, measurement_name: str):
         """Write last acquired measurement to a CSV file.
@@ -280,6 +311,114 @@ class Experiment:
 
         logger.debug(f"Measurement '{measurement_name}' written to {output_file}")
 
+    def write_measurements_to_socket(self, measurement_name: str):
+        """Write all acquired measurements to a websocket.
+
+        :param measurement_name: The name of the measurement to write to a websocket
+        """
+        if self.output_socket_port is None:
+            return
+
+        if not self._websocket_clients:
+            return
+
+        # Format measurements as requested: {measurement_name: [[timestamp, value], ...]}
+        measurements_data = {
+            measurement_name: [
+                [int(timestamp.timestamp() * 1000), value]
+                for timestamp, value in self.measurements[measurement_name]
+            ]
+        }
+        
+        message = json.dumps(measurements_data)
+        
+        # Send to all connected clients
+        if self._websocket_loop is not None:
+            asyncio.run_coroutine_threadsafe(
+                self._broadcast_message(message),
+                self._websocket_loop
+            )
+        
+        logger.debug(f"Measurement '{measurement_name}' sent to {len(self._websocket_clients)} websocket clients")
+
+    async def _broadcast_message(self, message: str):
+        """Broadcast a message to all connected websocket clients.
+        
+        :param message: The message to broadcast
+        """
+        if self._websocket_clients:
+            disconnected_clients = set()
+            for client in self._websocket_clients:
+                try:
+                    await client.send(message)
+                except Exception as e:
+                    logger.warning(f"Failed to send message to client: {e}")
+                    disconnected_clients.add(client)
+            
+            # Remove disconnected clients
+            self._websocket_clients -= disconnected_clients
+
+    async def _handle_websocket_client(self, websocket: WebSocketServerProtocol):
+        """Handle a websocket client connection.
+        
+        :param websocket: The websocket connection
+        """
+        self._websocket_clients.add(websocket)
+        logger.info(f"Websocket client connected. Total clients: {len(self._websocket_clients)}")
+        
+        try:
+            # Send all current measurements to the new client
+            all_measurements = {
+                name: [
+                    [timestamp.isoformat(), value]
+                    for timestamp, value in measurements
+                ]
+                for name, measurements in self.measurements.items()
+            }
+            if all_measurements:
+                await websocket.send(json.dumps(all_measurements))
+            
+            # Keep connection alive and handle incoming messages
+            async for message in websocket:
+                logger.debug(f"Received message from client: {message}")
+        except Exception as e:
+            logger.warning(f"Websocket client error: {e}")
+        finally:
+            self._websocket_clients.discard(websocket)
+            logger.info(f"Websocket client disconnected. Total clients: {len(self._websocket_clients)}")
+
+    def _start_websocket_server(self):
+        """Start the websocket server in a separate event loop."""
+        async def run_server():
+            self._websocket_server = await websockets.serve(
+                self._handle_websocket_client,
+                "localhost",
+                self.output_socket_port
+            )
+            logger.info(f"Websocket server started on port {self.output_socket_port}")
+            if self._websocket_server is not None:
+                await self._websocket_server.wait_closed()
+            logger.info("Websocket server stopped")
+
+        self._websocket_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._websocket_loop)
+        self._websocket_loop.run_until_complete(run_server())
+
+    def _stop_websocket_server(self):
+        """Stop the websocket server."""
+        if self._websocket_server is not None and self._websocket_loop is not None:
+            asyncio.run_coroutine_threadsafe(
+                self._websocket_server.close(),
+                self._websocket_loop
+            )
+            self._websocket_loop.call_soon_threadsafe(self._websocket_loop.stop)
+            if self._websocket_thread is not None:
+                self._websocket_thread.join(timeout=5)
+            self._websocket_thread = None
+            self._websocket_loop = None
+            self._websocket_server = None
+            logger.debug("Websocket server stopped")
+
     def reset_experiment(self):
         """Reset the experiment by clearing the actions, measurements and current time."""
         logger.debug("Experiment reset")
@@ -287,9 +426,14 @@ class Experiment:
             logger.warning("Experiment is running. Stop it before resetting.")
             return
 
+        # Stop websocket server if running
+        if self.output_socket_port is not None:
+            self._stop_websocket_server()
+
         self.actions.clear()
         self.measurements.clear()
         self.current_time = None
+        self._websocket_clients.clear()
 
     def _validate_types(self, func: Callable, *args: Any, **kwargs: Any):
         """Validate that the arguments passed to the function are of the correct type.

@@ -21,6 +21,7 @@ This project is a Python toolbox for managing biological experiment devices (pum
 - High-level API for device control
 - Easy-to-use experiment setup
 - Scrupulous logging
+- Real-time data streaming via WebSocket
 - Graphical user interface (in development)
 
 ## Installation
@@ -31,10 +32,17 @@ To install the package, you can use `pip`:
 pip install bioexperiment-suite
 ```
 
-or with GUI support:
+or with optional features:
 
 ```sh
+# With GUI support
 pip install bioexperiment-suite[gui]
+
+# With WebSocket streaming support
+pip install bioexperiment-suite[websocket]
+
+# With all optional features
+pip install bioexperiment-suite[gui,websocket]
 ```
 
 ### Prerequisites
