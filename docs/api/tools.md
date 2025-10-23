@@ -1,4 +1,4 @@
 # Helper functions for working with COM peripheral devices
 
-::: src.bioexperiment_suite.tools.serial_port
-::: src.bioexperiment_suite.tools.devices
+::: bioexperiment_tools.tools.serial_port
+::: bioexperiment_tools.tools.devices

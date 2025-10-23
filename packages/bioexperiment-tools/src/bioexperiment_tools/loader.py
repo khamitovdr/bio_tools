@@ -5,7 +5,7 @@ from importlib import resources as impresources
 from loguru import logger
 from munch import DefaultMunch
 
-import bioexperiment_suite
+import bioexperiment_tools
 
 logger.remove(0)
 logger.add(
@@ -13,6 +13,6 @@ logger.add(
     level="INFO",
 )
 
-device_interfaces_file = impresources.files(bioexperiment_suite) / "device_interfaces.json"
+device_interfaces_file = impresources.files(bioexperiment_tools) / "device_interfaces.json"
 with device_interfaces_file.open(encoding="utf8") as file:
     device_interfaces = DefaultMunch.fromDict(json.load(file))

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Callable
 
-from bioexperiment_suite.loader import logger
+from bioexperiment_experiment.loader import logger
 
 
 class Action:

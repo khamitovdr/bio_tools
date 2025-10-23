@@ -4,7 +4,7 @@ from tkinter import DoubleVar, StringVar, simpledialog
 from typing import Callable
 
 import ttkbootstrap as ttk
-from bioexperiment_suite.interfaces import Pump, SerialConnection, Spectrophotometer
+from bioexperiment_tools.interfaces import Pump, SerialConnection, Spectrophotometer
 from ttkbootstrap import constants as c
 
 

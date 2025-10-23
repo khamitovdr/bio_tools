@@ -1,0 +1,35 @@
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = ["F401"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.poetry]
+name = "bioexperiment-gui"
+version = "0.1.0"
+description = "Graphical user interface for biological experiment orchestration and device control."
+license = "MIT"
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+readme = "README.md"
+repository = "https://github.com/denis240997/bio_tools"
+packages = [
+    { include = "bioexperiment_gui", from = "src"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+bioexperiment-tools = {path = "../bioexperiment-tools", develop = true}
+bioexperiment-experiment = {path = "../bioexperiment-experiment", develop = true}
+ttkbootstrap = "^1.10.1"
+
+[tool.poetry.scripts]
+bioexperiment-gui = "bioexperiment_gui:main"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.5.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

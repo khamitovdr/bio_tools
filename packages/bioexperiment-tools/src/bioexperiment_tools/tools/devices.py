@@ -1,6 +1,6 @@
-from bioexperiment_suite.interfaces import Pump, SerialConnection, Spectrophotometer
-from bioexperiment_suite.loader import device_interfaces, logger
-from bioexperiment_suite.settings import get_settings
+from bioexperiment_tools.interfaces import Pump, SerialConnection, Spectrophotometer
+from bioexperiment_tools.loader import device_interfaces, logger
+from bioexperiment_tools.settings import get_settings
 
 from .serial_port import get_serial_ports
 

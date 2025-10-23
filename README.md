@@ -6,7 +6,9 @@ Python toolbox for managing biological experiment devices (pumps, cell density d
 
 - [Introduction](#introduction)
 - [Features](#features)
+- [Monorepo Structure](#monorepo-structure)
 - [Installation](#installation)
+- [Development](#development)
 - [Usage](#usage)
 - [License](#license)
 
@@ -22,27 +24,52 @@ This project is a Python toolbox for managing biological experiment devices (pum
 - Easy-to-use experiment setup
 - Scrupulous logging
 - Real-time data streaming via WebSocket
-- Graphical user interface (in development)
+- Graphical user interface
+
+## Monorepo Structure
+
+This repository is structured as a monorepo containing three independent packages:
+
+- **bioexperiment-tools** (`packages/bioexperiment-tools/`) - Core tools and device interfaces for pumps and spectrophotometers
+- **bioexperiment-experiment** (`packages/bioexperiment-experiment/`) - Experiment orchestration framework with actions, measurements, and conditions
+- **bioexperiment-gui** (`packages/bioexperiment-gui/`) - Graphical user interface for device control and experiment management
+
+Each package can be installed and used independently.
 
 ## Installation
 
-To install the package, you can use `pip`:
+You can install the packages individually based on your needs:
+
+### Installing with pip
 
 ```sh
-pip install bioexperiment-suite
+# Tools and device interfaces only
+pip install bioexperiment-tools
+
+# Experiment framework (includes tools as dependency)
+pip install bioexperiment-experiment
+
+# GUI (includes both tools and experiment as dependencies)
+pip install bioexperiment-gui
 ```
 
-or with optional features:
+### Installing with poetry
 
 ```sh
-# With GUI support
-pip install bioexperiment-suite[gui]
+# Tools and device interfaces only
+poetry add bioexperiment-tools
 
-# With WebSocket streaming support
-pip install bioexperiment-suite[websocket]
+# Experiment framework (includes tools as dependency)
+poetry add bioexperiment-experiment
 
-# With all optional features
-pip install bioexperiment-suite[gui,websocket]
+# GUI (includes both tools and experiment as dependencies)
+poetry add bioexperiment-gui
+```
+
+For websocket support with experiments:
+
+```sh
+poetry add bioexperiment-experiment -E websocket
 ```
 
 ### Prerequisites
@@ -52,9 +79,74 @@ Ensure you have the following installed on your machine:
 - Python 3.12 or higher
 - [Windows CH340 Driver](https://sparks.gogo.co.nz/ch340.html) (for Windows users if not installed already)
 
+## Development
+
+To set up the monorepo for development:
+
+```sh
+# Install each package in editable mode
+cd packages/bioexperiment-tools && poetry install && cd ../..
+cd packages/bioexperiment-experiment && poetry install && cd ../..
+cd packages/bioexperiment-gui && poetry install && cd ../..
+```
+
+Or for local development with path dependencies, you can install them in sequence:
+
+```sh
+cd packages/bioexperiment-tools
+poetry install
+cd ../bioexperiment-experiment
+poetry install
+cd ../bioexperiment-gui
+poetry install
+cd ../..
+```
+
+### Building Documentation
+
+Documentation is maintained at the root level and covers all packages:
+
+```sh
+poetry install --with docs
+mkdocs serve
+```
+
 ## Usage
 
-For comprehensive usage examples, please see the [examples](examples) directory.
+### Basic Device Control
+
+```python
+from bioexperiment_tools import Pump, Spectrophotometer, get_connected_devices
+
+# Discover devices
+pumps, spectrophotometers = get_connected_devices()
+
+# Use a pump
+pump = pumps[0]
+pump.set_default_flow_rate(5.0)
+pump.pour_in_volume(10.0, direction="right")
+```
+
+### Running Experiments
+
+```python
+from bioexperiment_experiment import Experiment
+from bioexperiment_tools import Pump, Spectrophotometer
+
+experiment = Experiment(output_dir="./results")
+experiment.add_action(pump.pour_in_volume, volume=10.0, flow_rate=5.0)
+experiment.add_measurement(spectrophotometer.measure_optical_density, 
+                          measurement_name="OD")
+experiment.start()
+```
+
+### Launching the GUI
+
+```sh
+bioexperiment-gui
+```
+
+For more comprehensive usage examples, please see the [examples](examples) directory.
 
 ## License
 

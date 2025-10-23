@@ -1,3 +1,3 @@
 # Spectrophotometer
 
-::: src.bioexperiment_suite.interfaces.spectrophotometer
+::: bioexperiment_tools.interfaces.spectrophotometer

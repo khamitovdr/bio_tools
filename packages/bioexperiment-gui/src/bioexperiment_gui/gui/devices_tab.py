@@ -1,8 +1,8 @@
 import threading
 
 import ttkbootstrap as ttk
-from bioexperiment_suite.interfaces import Pump, Spectrophotometer
-from bioexperiment_suite.tools import get_connected_devices
+from bioexperiment_tools.interfaces import Pump, Spectrophotometer
+from bioexperiment_tools.tools import get_connected_devices
 from ttkbootstrap import constants as c
 
 from .device_widgets import PumpWidget, SpectrophotometerWidget

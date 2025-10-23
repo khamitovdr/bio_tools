@@ -1,0 +1,39 @@
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = ["F401"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.poetry]
+name = "bioexperiment-tools"
+version = "0.1.0"
+description = "Tools and interfaces for biological experiment devices including pumps and spectrophotometers."
+license = "MIT"
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+readme = "README.md"
+repository = "https://github.com/denis240997/bio_tools"
+packages = [
+    { include = "bioexperiment_tools", from = "src"},
+]
+include = [
+    { path = "src/bioexperiment_tools/device_interfaces.json"},
+    { path = "src/bioexperiment_tools/py.typed"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+loguru = "^0.7.2"
+munch = "^4.0.0"
+pyserial = "^3.5"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+munch-stubs = "^0.1.2"
+ruff = "^0.5.4"
+types-pyserial = "^3.5.0.20240527"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

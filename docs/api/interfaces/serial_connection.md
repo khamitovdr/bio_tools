@@ -1,3 +1,3 @@
 # Serial Connection
 
-::: src.bioexperiment_suite.interfaces.serial_connection
+::: bioexperiment_tools.interfaces.serial_connection

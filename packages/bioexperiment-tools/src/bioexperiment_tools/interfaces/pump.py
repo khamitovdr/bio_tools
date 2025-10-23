@@ -1,7 +1,7 @@
 from time import sleep
 
-from bioexperiment_suite.loader import device_interfaces, logger
-from bioexperiment_suite.settings import get_settings
+from bioexperiment_tools.loader import device_interfaces, logger
+from bioexperiment_tools.settings import get_settings
 
 from .serial_connection import SerialConnection
 

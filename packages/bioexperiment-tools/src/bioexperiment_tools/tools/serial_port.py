@@ -3,8 +3,8 @@ import sys
 
 import serial
 
-from bioexperiment_suite.loader import logger
-from bioexperiment_suite.settings import get_settings
+from bioexperiment_tools.loader import logger
+from bioexperiment_tools.settings import get_settings
 
 
 def get_serial_ports() -> list[str]:

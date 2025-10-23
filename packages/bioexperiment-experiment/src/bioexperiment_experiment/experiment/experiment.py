@@ -10,10 +10,14 @@ from datetime import datetime
 from threading import Event, Thread
 from typing import Any, Callable, get_type_hints
 
-import websockets
-from websockets.server import WebSocketServerProtocol
+try:
+    import websockets
+    from websockets.server import WebSocketServerProtocol
+except ImportError:
+    websockets = None
+    WebSocketServerProtocol = None
 
-from bioexperiment_suite.loader import logger
+from bioexperiment_experiment.loader import logger
 
 from .actions import Action, WaitAction, Measurement
 from .collections import Statistic, RelationFunction

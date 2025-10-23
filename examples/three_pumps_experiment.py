@@ -4,9 +4,9 @@
 # In[ ]:
 
 
-from bioexperiment_suite.experiment.collections import Relation, Statistic
-from bioexperiment_suite.experiment import Experiment, Condition
-from bioexperiment_suite.tools import get_connected_devices
+from bioexperiment_experiment.experiment.collections import Relation, Statistic
+from bioexperiment_experiment import Experiment, Condition
+from bioexperiment_tools import get_connected_devices
 
 
 # In[ ]:

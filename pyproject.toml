@@ -1,50 +1,17 @@
-[tool.ruff.lint]
-fixable = ["ALL"]
-unfixable = ["F401"]
-
-[tool.ruff]
-line-length = 120
-
 [tool.poetry]
-name = "bioexperiment-suite"
-version = "0.4.1"
-description = "Python toolbox for managing biological experiment devices including pumps, cell density detectors, thermometers, and other related equipment."
+name = "bioexperiment-monorepo"
+version = "0.1.0"
+description = "Monorepo for BioExperiment Suite packages"
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
 readme = "README.md"
 repository = "https://github.com/denis240997/bio_tools"
-packages = [
-    { include = "bioexperiment_suite", from = "src"},
-]
-include = [
-    { path = "src/bioexperiment_suite/device_interfaces.json"},
-    { path = "src/bioexperiment_suite/py.typed"},
-]
+
+# This is a monorepo root package for coordinating development and documentation
+# Individual packages are located in the packages/ directory
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-loguru = "^0.7.2"
-munch = "^4.0.0"
-pyserial = "^3.5"
-ttkbootstrap = { version = "^1.10.1", optional = true }
-websockets = { version = "^14.0", optional = true }
-python-dotenv = "^1.0.1"
-
-[tool.poetry.extras]
-gui = ["ttkbootstrap"]
-websocket = ["websockets"]
-
-[tool.poetry.scripts]
-run_gui = "bioexperiment_suite.gui.main:main"
-
-[tool.poetry.group.dev.dependencies]
-munch-stubs = "^0.1.2"
-ruff = "^0.5.4"
-types-pyserial = "^3.5.0.20240527"
-notebook = "^7.3.1"
-pyinstaller = "^6.9.0"
-nbstripout = "^0.8.1"
-pre-commit = "^4.0.1"
 
 [tool.poetry.group.docs]
 optional = true
@@ -52,6 +19,23 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.30"
 mkdocstrings = {extras = ["python"], version = "^0.25.2"}
+# Add the local packages as path dependencies for docs generation
+bioexperiment-tools = {path = "packages/bioexperiment-tools", develop = true}
+bioexperiment-experiment = {path = "packages/bioexperiment-experiment", develop = true}
+bioexperiment-gui = {path = "packages/bioexperiment-gui", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.5.4"
+pre-commit = "^4.0.1"
+notebook = "^7.3.1"
+nbstripout = "^0.8.1"
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = ["F401"]
+
+[tool.ruff]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

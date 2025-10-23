@@ -1,3 +1,3 @@
 # Pump
 
-::: src.bioexperiment_suite.interfaces.pump
+::: bioexperiment_tools.interfaces.pump

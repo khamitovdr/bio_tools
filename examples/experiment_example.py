@@ -1,5 +1,5 @@
-from bioexperiment_suite.experiment import Experiment  # Import the Experiment class
-from bioexperiment_suite.tools import get_connected_devices  # Import the get_connected_devices function
+from bioexperiment_experiment import Experiment  # Import the Experiment class
+from bioexperiment_tools import get_connected_devices  # Import the get_connected_devices function
 
 # Define the experiment parameters
 TOTAL_EXPERIMENT_DURATION_HOURS = 24  # Total duration of the experiment in hours
