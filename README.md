@@ -84,22 +84,17 @@ Ensure you have the following installed on your machine:
 To set up the monorepo for development:
 
 ```sh
-# Install each package in editable mode
+# Recommended: Install all packages in coordinated development mode
+poetry install --no-root
+
+# Run examples and tests
+poetry run python examples/experiment_example.py
+poetry run jupyter notebook examples/
+
+# Or install each package individually
 cd packages/bioexperiment-tools && poetry install && cd ../..
 cd packages/bioexperiment-experiment && poetry install && cd ../..
 cd packages/bioexperiment-gui && poetry install && cd ../..
-```
-
-Or for local development with path dependencies, you can install them in sequence:
-
-```sh
-cd packages/bioexperiment-tools
-poetry install
-cd ../bioexperiment-experiment
-poetry install
-cd ../bioexperiment-gui
-poetry install
-cd ../..
 ```
 
 ### Building Documentation
@@ -107,7 +102,8 @@ cd ../..
 Documentation is maintained at the root level and covers all packages:
 
 ```sh
-poetry install --with docs
+# Install with documentation dependencies
+poetry install --no-root --with docs
 mkdocs serve
 ```
 

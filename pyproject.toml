@@ -12,6 +12,10 @@ repository = "https://github.com/denis240997/bio_tools"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
+# Local packages for coordinated development
+bioexperiment-tools = {path = "packages/bioexperiment-tools", develop = true}
+bioexperiment-experiment = {path = "packages/bioexperiment-experiment", develop = true}
+bioexperiment-gui = {path = "packages/bioexperiment-gui", develop = true}
 
 [tool.poetry.group.docs]
 optional = true
@@ -19,16 +23,13 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.30"
 mkdocstrings = {extras = ["python"], version = "^0.25.2"}
-# Add the local packages as path dependencies for docs generation
-bioexperiment-tools = {path = "packages/bioexperiment-tools", develop = true}
-bioexperiment-experiment = {path = "packages/bioexperiment-experiment", develop = true}
-bioexperiment-gui = {path = "packages/bioexperiment-gui", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.4"
 pre-commit = "^4.0.1"
 notebook = "^7.3.1"
 nbstripout = "^0.8.1"
+munch-stubs = "^0.1.3"
 
 [tool.ruff.lint]
 fixable = ["ALL"]
