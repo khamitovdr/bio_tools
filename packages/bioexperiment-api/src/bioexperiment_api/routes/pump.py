@@ -31,6 +31,8 @@ async def set_default_flow(device_id: str, request: SetDefaultFlowRequest) -> di
         logger.info(f"Set default flow rate {request.flow_rate} mL/min for pump {device_id}")
         return {"message": f"Default flow rate set to {request.flow_rate} mL/min"}
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except AttributeError as e:
@@ -51,16 +53,10 @@ async def pour_volume(device_id: str, request: PourVolumeRequest, response: Resp
         if device_type != "pump":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a pump")
 
-        # Determine if this should be async based on blocking_mode and estimated duration
-        estimated_duration = None
-        if request.flow_rate and request.volume:
-            estimated_duration = (request.volume / request.flow_rate) * 60  # Convert to seconds
-        elif pump.default_flow_rate and request.volume:
-            estimated_duration = (request.volume / pump.default_flow_rate) * 60
-
-        # Use async execution if blocking_mode is False or if operation will take > 2 seconds
-        # Also always use async for volumes > 5 mL to demonstrate job functionality
-        use_async = not request.blocking_mode or (estimated_duration and estimated_duration > 2) or request.volume > 5.0
+        # Determine if this should be async based on blocking_mode
+        # blocking_mode=True forces synchronous execution
+        # blocking_mode=False forces asynchronous execution
+        use_async = not request.blocking_mode
 
         if use_async:
             # Submit as async job
@@ -104,6 +100,8 @@ async def pour_volume(device_id: str, request: PourVolumeRequest, response: Resp
             logger.info(f"Completed synchronous pour volume for pump {device_id}")
             return {"message": f"Poured {request.volume} mL successfully"}
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
@@ -135,6 +133,8 @@ async def start_pump(device_id: str, request: StartPumpRequest) -> dict[str, str
         logger.info(f"Started continuous rotation for pump {device_id} in direction {request.direction}{flow_rate_msg}")
         return {"message": f"Pump started in {request.direction} direction{flow_rate_msg}"}
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
@@ -162,12 +162,15 @@ async def stop_pump(device_id: str) -> dict[str, str]:
         logger.info(f"Stopped pump {device_id}")
         return {"message": "Pump stopped"}
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
         # Handle flow rate requirement error more gracefully
         if "Flow rate must be set" in str(e):
             # Set a default flow rate for stopping
+            lock = registry.lock(device_id)
             async with lock:
                 pump.set_default_flow_rate(1.0)  # Set minimal flow rate
                 pump.stop_continuous_rotation()

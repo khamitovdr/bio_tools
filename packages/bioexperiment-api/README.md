@@ -6,7 +6,7 @@ FastAPI REST API for bioexperiment-tools devices including pumps and spectrophot
 
 - Stateless REST API with device registry
 - Asynchronous job execution for long-running operations
-- Device hotplug support with automatic scanning
+- Device hotplug support with manual and on-startup scanning
 - Thread-safe device access with per-device locking
 - WebSocket support for job status updates
 
@@ -31,7 +31,7 @@ poetry run uvicorn bioexperiment_api.app:app --reload --host 0.0.0.0 --port 8000
 - `N_VIRTUAL_PUMPS`: Number of virtual pumps (default: 0)
 - `N_VIRTUAL_SPECTROPHOTOMETERS`: Number of virtual spectrophotometers (default: 0)
 - `LOG_LEVEL`: Logging level (default: "INFO")
-- `RESCAN_INTERVAL_SEC`: Device rescan interval in seconds (default: 60)
+- `RESCAN_INTERVAL_SEC`: Device rescan interval in seconds (default: 0, disabled). Set to 0 to disable automatic rescanning. Use `POST /devices:rescan` for manual rescanning.
 - `JOB_RETENTION_SEC`: Job retention time in seconds (default: 3600)
 - `MAX_WORKERS`: Maximum worker threads (default: 4)
 

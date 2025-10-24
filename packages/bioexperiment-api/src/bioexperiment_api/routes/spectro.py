@@ -28,6 +28,8 @@ async def get_temperature(device_id: str) -> TemperatureResponse:
         logger.info(f"Got temperature {temperature:.2f}°C from spectrophotometer {device_id}")
         return TemperatureResponse(temperature=temperature)
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except AttributeError as e:
@@ -68,6 +70,8 @@ async def measure_optical_density(device_id: str, request: MeasureRequest, respo
         response.status_code = 202
         return JobResponse(job_id=job_id)
 
+    except HTTPException:
+        raise
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except Exception as e:

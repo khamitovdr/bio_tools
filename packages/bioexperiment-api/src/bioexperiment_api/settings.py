@@ -16,7 +16,7 @@ class Settings:
 
     # API settings
     LOG_LEVEL: str = "INFO"
-    RESCAN_INTERVAL_SEC: int = 60
+    RESCAN_INTERVAL_SEC: int = 0  # Set to 0 to disable automatic rescanning (manual only)
     JOB_RETENTION_SEC: int = 3600
     MAX_WORKERS: int = 4
 
@@ -39,7 +39,7 @@ def get_settings() -> Settings:
         N_VIRTUAL_PUMPS=int(os.getenv("N_VIRTUAL_PUMPS", "0")),
         N_VIRTUAL_SPECTROPHOTOMETERS=int(os.getenv("N_VIRTUAL_SPECTROPHOTOMETERS", "0")),
         LOG_LEVEL=os.getenv("LOG_LEVEL", "INFO"),
-        RESCAN_INTERVAL_SEC=int(os.getenv("RESCAN_INTERVAL_SEC", "60")),
+        RESCAN_INTERVAL_SEC=int(os.getenv("RESCAN_INTERVAL_SEC", "0")),
         JOB_RETENTION_SEC=int(os.getenv("JOB_RETENTION_SEC", "3600")),
         MAX_WORKERS=int(os.getenv("MAX_WORKERS", "4")),
         API_KEY=os.getenv("API_KEY", ""),

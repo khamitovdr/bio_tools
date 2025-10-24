@@ -23,6 +23,8 @@ async def get_job(job_id: UUID) -> Job:
 
         return job
 
+    except HTTPException:
+        raise
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Invalid job ID format: {job_id}")
     except Exception as e:
