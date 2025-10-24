@@ -215,8 +215,11 @@ class TestDeviceScanner:
             mock_ports.return_value = ["SLOW_PORT"]
             
             with patch.object(scanner._identifier, 'identify_device') as mock_identify:
-                # Make identification hang
-                mock_identify.side_effect = asyncio.sleep(10)
+                # Make identification hang - need to return an awaitable that hangs
+                async def slow_identify(*args, **kwargs):
+                    await asyncio.sleep(10)
+                    
+                mock_identify.side_effect = slow_identify
                 
                 with pytest.raises(asyncio.TimeoutError):
                     await scanner.scan_ports(timeout=0.1)
@@ -230,9 +233,12 @@ class TestDeviceScanner:
     @pytest.mark.asyncio
     async def test_discover_devices(self, scanner, monkeypatch):
         """Test device discovery returning device instances."""
-        monkeypatch.setenv("EMULATE_DEVICES", "true")
-        monkeypatch.setenv("N_VIRTUAL_PUMPS", "2")
-        monkeypatch.setenv("N_VIRTUAL_SPECTROPHOTOMETERS", "1")
+        from bioexperiment_tools_async.core.config import clear_config
+        
+        monkeypatch.setenv("BIOEXPERIMENT_EMULATE_DEVICES", "true")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_PUMPS", "2")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_SPECTROPHOTOMETERS", "1")
+        clear_config()  # Clear cache to pick up new env vars
         
         pumps, spectrophotometers = await scanner.discover_devices()
         
@@ -294,9 +300,12 @@ class TestDiscoverDevicesFunction:
     @pytest.mark.asyncio
     async def test_discover_devices_function_with_filter(self, monkeypatch):
         """Test discover_devices function with device type filter."""
-        monkeypatch.setenv("EMULATE_DEVICES", "true")
-        monkeypatch.setenv("N_VIRTUAL_PUMPS", "2")
-        monkeypatch.setenv("N_VIRTUAL_SPECTROPHOTOMETERS", "2")
+        from bioexperiment_tools_async.core.config import clear_config
+        
+        monkeypatch.setenv("BIOEXPERIMENT_EMULATE_DEVICES", "true")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_PUMPS", "2")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_SPECTROPHOTOMETERS", "2")
+        clear_config()  # Clear cache to pick up new env vars
         
         # Test spectrophotometer filter
         pumps, spectrophotometers = await discover_devices(
@@ -309,9 +318,12 @@ class TestDiscoverDevicesFunction:
     @pytest.mark.asyncio
     async def test_discover_devices_function_with_timeout(self, monkeypatch):
         """Test discover_devices function with timeout."""
-        monkeypatch.setenv("EMULATE_DEVICES", "true")
-        monkeypatch.setenv("N_VIRTUAL_PUMPS", "1")
-        monkeypatch.setenv("N_VIRTUAL_SPECTROPHOTOMETERS", "0")
+        from bioexperiment_tools_async.core.config import clear_config
+        
+        monkeypatch.setenv("BIOEXPERIMENT_EMULATE_DEVICES", "true")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_PUMPS", "1")
+        monkeypatch.setenv("BIOEXPERIMENT_N_VIRTUAL_SPECTROPHOTOMETERS", "0")
+        clear_config()  # Clear cache to pick up new env vars
         
         pumps, spectrophotometers = await discover_devices(timeout=5.0)
         
