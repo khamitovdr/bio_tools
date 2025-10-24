@@ -1,0 +1,36 @@
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = ["F401"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.poetry]
+name = "bioexperiment-api"
+version = "0.1.0"
+description = "FastAPI REST API for bioexperiment-tools devices"
+license = "MIT"
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+readme = "README.md"
+repository = "https://github.com/denis240997/bio_tools"
+packages = [
+    { include = "bioexperiment_api", from = "src"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+fastapi = "^0.104.0"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+pydantic = "^2.5.0"
+anyio = "^3.7.1"
+bioexperiment-tools = {path = "../bioexperiment-tools", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+httpx = "^0.25.0"
+ruff = "^0.5.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
