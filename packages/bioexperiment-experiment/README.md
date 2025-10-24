@@ -75,4 +75,3 @@ poetry install
 ## License
 
 MIT
-

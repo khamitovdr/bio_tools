@@ -5,9 +5,9 @@ from typing import Any
 
 from loguru import logger
 
-from ..core.config import get_config
-from ..core.exceptions import DeviceConnectionError
-from ..core.types import PortName
+from bioexperiment_tools_async.core.config import get_config
+from bioexperiment_tools_async.core.exceptions import DeviceConnectionError
+from bioexperiment_tools_async.core.types import PortName
 
 
 class MockConnection:

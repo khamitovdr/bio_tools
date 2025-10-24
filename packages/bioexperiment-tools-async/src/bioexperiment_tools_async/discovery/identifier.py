@@ -7,10 +7,13 @@ from typing import Any
 
 from loguru import logger
 
-from ..connection import MockConnection, SerialConnection
-from ..core.config import get_config
-from ..core.types import DeviceType, PortName
-from ..protocol.device_protocol import PumpProtocol, SpectrophotometerProtocol
+from bioexperiment_tools_async.connection import MockConnection, SerialConnection
+from bioexperiment_tools_async.core.config import get_config
+from bioexperiment_tools_async.core.types import DeviceType, PortName
+from bioexperiment_tools_async.protocol.device_protocol import (
+    PumpProtocol,
+    SpectrophotometerProtocol,
+)
 
 
 @dataclass
@@ -21,7 +24,7 @@ class IdentificationResult:
     device_type: DeviceType | None
     success: bool
     error: str | None = None
-    timestamp: datetime = None
+    timestamp: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.timestamp is None:

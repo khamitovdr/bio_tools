@@ -56,7 +56,7 @@ class TestDeviceIdentifier:
         assert isinstance(identifier._cache, dict)
         assert len(identifier._cache) == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_pump_device(self, identifier, monkeypatch):
         """Test identifying pump device."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -68,7 +68,7 @@ class TestDeviceIdentifier:
         assert result.success is True
         assert result.error is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_spectrophotometer_device(self, identifier, monkeypatch):
         """Test identifying spectrophotometer device."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -80,7 +80,7 @@ class TestDeviceIdentifier:
         assert result.success is True
         assert result.error is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_caching(self, identifier, monkeypatch):
         """Test that identification results are cached."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -94,7 +94,7 @@ class TestDeviceIdentifier:
         assert result2.success is True
         assert result2.timestamp == result1.timestamp  # Same cached result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_skip_cache(self, identifier, monkeypatch):
         """Test identifying device without using cache."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -154,7 +154,10 @@ class TestDeviceIdentifier:
 
         # Add expired result
         expired_result = IdentificationResult(
-            "COM1", DeviceType.PUMP, True, timestamp=datetime.now() - timedelta(seconds=120),
+            "COM1",
+            DeviceType.PUMP,
+            True,
+            timestamp=datetime.now() - timedelta(seconds=120),
         )
         identifier._cache["COM1"] = expired_result
 
@@ -178,7 +181,7 @@ class TestDeviceScanner:
         assert isinstance(scanner._identifier, DeviceIdentifier)
         assert scanner._semaphore._value > 0  # Has concurrency limit
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_ports_with_emulation(self, scanner, monkeypatch):
         """Test scanning ports with device emulation."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -192,7 +195,7 @@ class TestDeviceScanner:
         assert any(r.device_type == DeviceType.PUMP for r in results)
         assert any(r.device_type == DeviceType.SPECTROPHOTOMETER for r in results)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_ports_auto_discovery(self, scanner, monkeypatch):
         """Test scanning with automatic port discovery."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -206,7 +209,7 @@ class TestDeviceScanner:
         successful_results = [r for r in results if r.success]
         assert len(successful_results) >= 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_ports_timeout(self, scanner):
         """Test scan ports with timeout."""
         with patch("bioexperiment_tools_async.utils.serial_utils.get_available_ports") as mock_ports:
@@ -223,13 +226,13 @@ class TestDeviceScanner:
                 with pytest.raises(asyncio.TimeoutError):
                     await scanner.scan_ports(timeout=0.1)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_scan_empty_ports(self, scanner):
         """Test scanning empty port list."""
         results = await scanner.scan_ports([])
         assert results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discover_devices(self, scanner, monkeypatch):
         """Test device discovery returning device instances."""
         from bioexperiment_tools_async.core.config import clear_config
@@ -246,7 +249,7 @@ class TestDeviceScanner:
         assert all(isinstance(p, AsyncPump) for p in pumps)
         assert all(isinstance(s, AsyncSpectrophotometer) for s in spectrophotometers)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discover_devices_filter_by_type(self, scanner, monkeypatch):
         """Test device discovery with device type filter."""
         monkeypatch.setenv("EMULATE_DEVICES", "true")
@@ -277,7 +280,7 @@ class TestDeviceScanner:
 class TestDiscoverDevicesFunction:
     """Tests for the convenience discover_devices function."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discover_devices_function(self, monkeypatch):
         """Test the standalone discover_devices function."""
         from bioexperiment_tools_async.core.config import clear_config
@@ -294,7 +297,7 @@ class TestDiscoverDevicesFunction:
         assert isinstance(pumps[0], AsyncPump)
         assert isinstance(spectrophotometers[0], AsyncSpectrophotometer)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discover_devices_function_with_filter(self, monkeypatch):
         """Test discover_devices function with device type filter."""
         from bioexperiment_tools_async.core.config import clear_config
@@ -310,7 +313,7 @@ class TestDiscoverDevicesFunction:
         assert len(pumps) == 0
         assert len(spectrophotometers) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discover_devices_function_with_timeout(self, monkeypatch):
         """Test discover_devices function with timeout."""
         from bioexperiment_tools_async.core.config import clear_config

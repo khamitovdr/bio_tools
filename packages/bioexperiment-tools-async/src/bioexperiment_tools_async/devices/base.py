@@ -6,11 +6,14 @@ from typing import Any
 
 from loguru import logger
 
-from ..connection import MockConnection, SerialConnection
-from ..core.config import get_config
-from ..core.exceptions import DeviceConnectionError, DeviceOperationError
-from ..core.protocols import AsyncConnection
-from ..core.types import DeviceType, PortName
+from bioexperiment_tools_async.connection import MockConnection, SerialConnection
+from bioexperiment_tools_async.core.config import get_config
+from bioexperiment_tools_async.core.exceptions import (
+    DeviceConnectionError,
+    DeviceOperationError,
+)
+from bioexperiment_tools_async.core.protocols import AsyncConnection
+from bioexperiment_tools_async.core.types import DeviceType, PortName
 
 
 class AsyncBaseDevice(ABC):
@@ -140,7 +143,7 @@ class AsyncBaseDevice(ABC):
             except Exception as e:
                 logger.error(f"Failed to execute {operation_name} on {self.device_id}: {e}")
 
-                if isinstance(e, (DeviceConnectionError, DeviceOperationError)):
+                if isinstance(e, DeviceConnectionError | DeviceOperationError):
                     raise
 
                 raise DeviceOperationError(

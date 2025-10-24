@@ -22,11 +22,12 @@ def identify_device(port: str) -> str | None:
         logger.debug(f'Checking for device "{device_interface.type}" on port {port}')
         logger.debug(f"Identification signal: {device_interface.identification_signal}")
         response = serial_connection.communicate_with_serial_port(
-            device_interface.identification_signal, device_interface.identification_response_len
+            device_interface.identification_signal,
+            device_interface.identification_response_len,
         )
 
         if len(response) == device_interface.identification_response_len and list(response)[0] == int(
-            device_interface.first_identification_response_byte
+            device_interface.first_identification_response_byte,
         ):
             logger.success(f'Device "{device_interface.type}" identified on port {port}')
             return device_name

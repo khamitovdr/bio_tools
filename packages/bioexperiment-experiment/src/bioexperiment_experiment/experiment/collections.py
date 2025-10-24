@@ -1,5 +1,6 @@
-from typing import Callable, SupportsIndex, Optional, TypeAlias
+from collections.abc import Callable
 from statistics import median
+from typing import Optional, SupportsIndex, TypeAlias
 
 RelationFunction: TypeAlias = Callable[[float], bool]
 
@@ -50,23 +51,23 @@ class Statistic:
         return len
 
     @staticmethod
-    def SUM(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
+    def SUM(window_size: int | None = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: sum(measurement[-window_size:]) if window_size else sum(measurement)
 
     @staticmethod
-    def MEAN(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
+    def MEAN(window_size: int | None = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: (
             sum(measurement[-window_size:]) / window_size if window_size else sum(measurement) / len(measurement)
         )
 
     @staticmethod
-    def MEDIAN(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
+    def MEDIAN(window_size: int | None = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: median(measurement[-window_size:]) if window_size else median(measurement)
 
     @staticmethod
-    def MAX(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
+    def MAX(window_size: int | None = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: max(measurement[-window_size:]) if window_size else max(measurement)
 
     @staticmethod
-    def MIN(window_size: Optional[int] = None) -> Callable[[SupportsIndex], float]:
+    def MIN(window_size: int | None = None) -> Callable[[SupportsIndex], float]:
         return lambda measurement: min(measurement[-window_size:]) if window_size else min(measurement)

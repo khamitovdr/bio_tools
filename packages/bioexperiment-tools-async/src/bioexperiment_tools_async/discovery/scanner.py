@@ -5,10 +5,11 @@ from typing import Any
 
 from loguru import logger
 
-from ..core.config import get_config
-from ..core.types import DeviceType
-from ..devices import AsyncPump, AsyncSpectrophotometer
-from ..utils.serial_utils import get_available_ports
+from bioexperiment_tools_async.core.config import get_config
+from bioexperiment_tools_async.core.types import DeviceType
+from bioexperiment_tools_async.devices import AsyncPump, AsyncSpectrophotometer
+from bioexperiment_tools_async.utils.serial_utils import get_available_ports
+
 from .identifier import DeviceIdentifier, IdentificationResult
 
 

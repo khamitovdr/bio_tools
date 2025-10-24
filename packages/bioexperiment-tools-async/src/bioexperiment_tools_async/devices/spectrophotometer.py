@@ -4,9 +4,17 @@ import asyncio
 
 from loguru import logger
 
-from ..core.exceptions import DeviceOperationError
-from ..core.types import DeviceType, OpticalDensity, PortName, Temperature
-from ..protocol.device_protocol import SpectrophotometerProtocol
+from bioexperiment_tools_async.core.exceptions import DeviceOperationError
+from bioexperiment_tools_async.core.types import (
+    DeviceType,
+    OpticalDensity,
+    PortName,
+    Temperature,
+)
+from bioexperiment_tools_async.protocol.device_protocol import (
+    SpectrophotometerProtocol,
+)
+
 from .base import AsyncBaseDevice
 
 

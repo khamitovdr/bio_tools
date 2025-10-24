@@ -10,7 +10,7 @@ from bioexperiment_tools_async.core.config import clear_config
 class TestConcurrentDeviceAccess:
     """Tests for concurrent access to devices."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_single_device_concurrent_operations(self, monkeypatch):
         """Test that concurrent operations on a single device complete successfully."""
         clear_config()
@@ -48,7 +48,7 @@ class TestConcurrentDeviceAccess:
         assert len(completed_operations) == 3
         assert set(completed_operations) == {"op1", "op2", "op3"}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_devices_concurrent_operations(self, monkeypatch):
         """Test that operations on different devices can run concurrently."""
         clear_config()
@@ -95,7 +95,7 @@ class TestConcurrentDeviceAccess:
         # Allow generous overhead for timing variations in CI/test environments
         assert total_time < 2.5  # Allow overhead, but should be much faster than sequential (~2.1s)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mixed_device_concurrent_operations(self, monkeypatch):
         """Test concurrent operations on different device types."""
         clear_config()
@@ -143,7 +143,7 @@ class TestConcurrentDeviceAccess:
         assert len(pump_results) == 2
         assert len(spectro_results) == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_device_connection_sharing(self, monkeypatch):
         """Test that device connections are properly managed across concurrent operations."""
         clear_config()
@@ -185,7 +185,7 @@ class TestConcurrentDeviceAccess:
             else:
                 assert state.endswith("_False")  # Should be disconnected outside context
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_discovery_cache_concurrent_access(self, monkeypatch):
         """Test that device discovery cache handles concurrent access properly."""
         clear_config()
@@ -222,7 +222,7 @@ class TestConcurrentDeviceAccess:
 
         assert pump_ids1 == pump_ids2 == pump_ids3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_error_propagation_in_concurrent_operations(self, monkeypatch):
         """Test that errors in concurrent operations are properly propagated."""
         clear_config()
@@ -258,7 +258,7 @@ class TestConcurrentDeviceAccess:
         assert results[0] == "success"  # First operation succeeded
         assert isinstance(results[1], Exception)  # Second operation failed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_device_lifecycle(self, monkeypatch):
         """Test concurrent device lifecycle operations (connect/disconnect)."""
         clear_config()

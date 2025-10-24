@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Callable
+from typing import Any
 
 from bioexperiment_experiment.loader import logger
 

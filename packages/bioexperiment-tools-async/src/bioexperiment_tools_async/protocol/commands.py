@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-from ..core.types import Direction, FlowRate, Volume
-from ..utils.serial_utils import int_to_bytes
+from bioexperiment_tools_async.core.types import Direction, FlowRate, Volume
+from bioexperiment_tools_async.utils.serial_utils import int_to_bytes
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,9 @@ class PumpCommand(DeviceCommand):
         """Create set flow rate command."""
         speed_param = int(29 / flow_rate) if flow_rate > 0 else 29
         return cls(
-            data=[10, 0, 1, speed_param, 0], response_length=0, description=f"Set flow rate to {flow_rate} mL/min",
+            data=[10, 0, 1, speed_param, 0],
+            response_length=0,
+            description=f"Set flow rate to {flow_rate} mL/min",
         )
 
     @classmethod
@@ -43,7 +45,7 @@ class PumpCommand(DeviceCommand):
         step_volume_bytes = int_to_bytes(step_volume, 4)
 
         return cls(
-            data=[direction_byte] + step_volume_bytes,
+            data=[direction_byte, *step_volume_bytes],
             response_length=0,
             description=f"Pour {volume} mL {direction.value}",
         )

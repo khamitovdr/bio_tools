@@ -7,11 +7,19 @@ from typing import Any, Generic, TypeVar
 
 from loguru import logger
 
-from ..core.config import get_config
-from ..core.exceptions import DeviceCommunicationError
-from ..core.protocols import AsyncConnection
-from ..core.types import DeviceType, Direction, FlowRate, OpticalDensity, Temperature, Volume
-from ..utils.serial_utils import bytes_to_int
+from bioexperiment_tools_async.core.config import get_config
+from bioexperiment_tools_async.core.exceptions import DeviceCommunicationError
+from bioexperiment_tools_async.core.protocols import AsyncConnection
+from bioexperiment_tools_async.core.types import (
+    DeviceType,
+    Direction,
+    FlowRate,
+    OpticalDensity,
+    Temperature,
+    Volume,
+)
+from bioexperiment_tools_async.utils.serial_utils import bytes_to_int
+
 from .commands import DeviceCommand, PumpCommand, SpectrophotometerCommand
 
 T = TypeVar("T", bound=DeviceCommand)

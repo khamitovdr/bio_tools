@@ -231,17 +231,26 @@ class ExperimentWidget(ttk.Frame):
         frame = ttk.Labelframe(self, bootstyle=c.PRIMARY, text="Experiment Controls", padding=self.FRAME_PADDING)
 
         apply_settings_button = ttk.Button(
-            frame, text="Apply Experiment Settings", command=self.apply_experiment_settings, bootstyle=c.PRIMARY
+            frame,
+            text="Apply Experiment Settings",
+            command=self.apply_experiment_settings,
+            bootstyle=c.PRIMARY,
         )
         apply_settings_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
 
         start_experiment_button = ttk.Button(
-            frame, text="Start Experiment", command=self.start_experiment, bootstyle=c.SUCCESS
+            frame,
+            text="Start Experiment",
+            command=self.start_experiment,
+            bootstyle=c.SUCCESS,
         )
         start_experiment_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
 
         stop_experiment_button = ttk.Button(
-            frame, text="Stop Experiment", command=self.stop_experiment, bootstyle=c.DANGER
+            frame,
+            text="Stop Experiment",
+            command=self.stop_experiment,
+            bootstyle=c.DANGER,
         )
         stop_experiment_button.pack(fill=c.X, padx=self.PADX, pady=self.PADY)
 

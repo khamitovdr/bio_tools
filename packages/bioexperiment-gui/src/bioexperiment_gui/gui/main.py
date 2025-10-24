@@ -23,7 +23,7 @@ class MainWindow(ttk.Frame):
         self.add_tab(ConnectedDevicesWidget, "Devices")
         self.add_tab(ExperimentWidget, "Experiment")
 
-    def add_tab(self, tab_constructor: Type[ttk.Frame], title: str):
+    def add_tab(self, tab_constructor: type[ttk.Frame], title: str):
         tab = tab_constructor(self.notebook, self.store)
         tab.pack(fill=c.BOTH, expand=c.YES)
         self.notebook.add(tab, text=title)

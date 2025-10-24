@@ -17,19 +17,19 @@ tasks:
   fmt:
     desc: Format all code with ruff
     cmds:
-      - ruff format .
+      - poetry run ruff format .
       - echo "✓ Code formatted successfully"
 
   lint:
     desc: Run ruff linting (check mode, no fixes)
     cmds:
-      - ruff check .
+      - poetry run ruff check .
       - echo "✓ Linting check passed"
 
   "lint:fix":
     desc: Run ruff linting with auto-fixes
     cmds:
-      - ruff check --fix .
+      - poetry run ruff check --fix .
       - echo "✓ Linting issues fixed"
 
   # ========================================
@@ -39,17 +39,17 @@ tasks:
   type:
     desc: Run mypy type checking on all packages
     cmds:
-      - mypy packages/bioexperiment-tools/src
-      - mypy packages/bioexperiment-tools-async/src
-      - mypy packages/bioexperiment-api/src
-      - mypy packages/bioexperiment-experiment/src
-      - mypy packages/bioexperiment-gui/src
+      - poetry run mypy packages/bioexperiment-tools/src
+      - poetry run mypy packages/bioexperiment-tools-async/src
+      - poetry run mypy packages/bioexperiment-api/src
+      - poetry run mypy packages/bioexperiment-experiment/src
+      - poetry run mypy packages/bioexperiment-gui/src
       - echo "✓ Type checking passed"
 
   "type:package":
     desc: "Run mypy on a specific package (usage: task type:package PACKAGE=bioexperiment-tools)"
     cmds:
-      - mypy {{.PACKAGES_DIR}}/{{.PACKAGE}}/src
+      - poetry run mypy {{.PACKAGES_DIR}}/{{.PACKAGE}}/src
     requires:
       vars: [PACKAGE]
 
@@ -78,20 +78,22 @@ tasks:
   test:
     desc: Run all tests across all packages
     cmds:
-      - pytest packages/*/tests -v
+      - poetry run pytest packages/bioexperiment-tools-async/tests -v
+      - poetry run pytest packages/bioexperiment-api/tests -v
       - echo "✓ All tests passed"
 
   "test:package":
     desc: "Run tests for a specific package (usage: task test:package PACKAGE=bioexperiment-tools-async)"
     cmds:
-      - pytest {{.PACKAGES_DIR}}/{{.PACKAGE}}/tests -v
+      - poetry run pytest {{.PACKAGES_DIR}}/{{.PACKAGE}}/tests -v
     requires:
       vars: [PACKAGE]
 
   "test:cov":
     desc: Run tests with coverage report
     cmds:
-      - pytest packages/*/tests --cov --cov-report=term-missing --cov-report=html
+      - poetry run pytest packages/bioexperiment-tools-async/tests --cov=bioexperiment_tools_async --cov-report=term-missing --cov-report=html
+      - poetry run pytest packages/bioexperiment-api/tests --cov=bioexperiment_api --cov-append --cov-report=term-missing --cov-report=html
       - echo "✓ Coverage report generated in htmlcov/"
 
   # ========================================
@@ -101,18 +103,18 @@ tasks:
   "pre-commit:install":
     desc: Install pre-commit hooks
     cmds:
-      - pre-commit install
+      - poetry run pre-commit install
       - echo "✓ Pre-commit hooks installed"
 
   "pre-commit:run":
     desc: Run pre-commit on all files
     cmds:
-      - pre-commit run --all-files
+      - poetry run pre-commit run --all-files
 
   "pre-commit:update":
     desc: Update pre-commit hook versions
     cmds:
-      - pre-commit autoupdate
+      - poetry run pre-commit autoupdate
       - echo "✓ Pre-commit hooks updated"
 
   # ========================================
@@ -149,12 +151,12 @@ tasks:
   "docs:serve":
     desc: Serve documentation locally
     cmds:
-      - mkdocs serve
+      - poetry run mkdocs serve
 
   "docs:build":
     desc: Build documentation
     cmds:
-      - mkdocs build
+      - poetry run mkdocs build
       - echo "✓ Documentation built in site/"
 
   # ========================================
@@ -178,7 +180,7 @@ tasks:
     desc: Run full CI pipeline locally (format check, lint, type check, test)
     cmds:
       - echo "Running CI pipeline..."
-      - ruff format --check .
+      - poetry run ruff format --check .
       - task: lint
       - task: type
       - task: test

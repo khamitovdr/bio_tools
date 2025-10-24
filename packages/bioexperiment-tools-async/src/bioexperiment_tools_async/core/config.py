@@ -16,7 +16,6 @@ class DeviceConfig(BaseModel):
     identification_response_len: int = Field(description="Expected length of identification response")
     first_identification_response_byte: int = Field(description="Expected first byte of identification response")
     commands: dict[str, Any] = Field(default_factory=dict, description="Device command definitions")
-    speed_table: dict[str, list[int]] | None = Field(default=None, description="Speed table for pump devices")
 
 
 class PumpConfig(DeviceConfig):

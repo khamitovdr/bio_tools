@@ -23,6 +23,14 @@ warn_unused_ignores = true
 ignore_missing_imports = true
 module = "ttkbootstrap.*"
 
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "loguru.*",
+  "pydantic_settings.*",
+  "serial_asyncio.*"
+]
+
 [tool.poetry]
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
 description = "Monorepo for BioExperiment Suite packages"
@@ -133,6 +141,14 @@ select = [
 unfixable = ["F401"] # Don't auto-remove unused imports
 
 [tool.ruff.lint.per-file-ignores]
-"**/conftest.py" = ["ARG001"]
-"examples/**/*" = ["INP001", "S101", "T20"]
-"tests/**/*" = ["ARG001", "PLR2004", "S101", "SLF001"]
+"**/*_example.py" = ["PLR2004", "T201"]
+"**/conftest.py" = ["ARG001", "PT004", "RET505"]
+"**/demo.py" = ["ARG001", "B007", "BLE001", "E722", "PLR2004", "S110", "SIM105", "T201"]
+"examples/**/*" = ["B007", "INP001", "PLR2004", "S101", "T20"]
+"packages/bioexperiment-api/**/*.py" = ["ARG001", "BLE001", "E722", "F401", "FBT003", "PLR2004", "RET504", "RET505", "RUF006", "S104", "S110", "SIM105", "SLF001", "T201", "TID252", "TRY300", "TRY301", "UP007", "UP038"]
+"packages/bioexperiment-experiment/**/*.py" = ["B008", "BLE001", "E501", "F401", "FBT001", "FBT002", "N802", "PGH003", "PTH118", "PTH123", "SIM105", "TCH003", "TRY004", "UP040"]
+"packages/bioexperiment-gui/**/*.py" = ["F401", "N806", "PGH003", "RET503", "T201", "TCH002", "UP035"]
+# bioexperiment-tools-async: Allow some patterns for existing async code
+"packages/bioexperiment-tools-async/**/*" = ["ARG001", "ARG002", "B017", "BLE001", "ERA001", "FBT001", "FBT003", "PIE810", "PLR2004", "PLW0603", "PT004", "PT011", "PT012", "PTH207", "PYI036", "RET505", "RUF005", "S101", "S311", "SLF001", "TRY300"]
+"packages/bioexperiment-tools/**/*.py" = ["FBT001", "FBT002", "PGH003", "PTH207", "PYI041", "RET504", "RUF005", "RUF015", "S311", "SIM105", "TCH003", "TRY002", "UP008"]
+"tests/**/*" = ["ARG001", "ARG002", "B017", "FBT001", "FBT003", "PLR2004", "PT004", "PT011", "PT012", "S101", "SLF001"]

@@ -40,19 +40,27 @@ experiment = Experiment()
 for i in range(n_solution_refreshes):  # Loop over the number of solution refreshes
     for j in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
         experiment.add_measurement(
-            spectrophotometer.get_temperature, measurement_name="Temperature (C)"
+            spectrophotometer.get_temperature,
+            measurement_name="Temperature (C)",
         )  # Measure temperature
         experiment.add_measurement(
-            spectrophotometer.measure_optical_density, measurement_name="Optical density"
+            spectrophotometer.measure_optical_density,
+            measurement_name="Optical density",
         )  # Measure optical density
         experiment.add_wait(MEASUREMENT_INTERVAL_MINUTES * 60)  # Wait for the measurement interval
 
     # Add actions to refresh the solution
     experiment.add_action(
-        pump2.pour_in_volume, volume=POURED_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction="left"
+        pump2.pour_in_volume,
+        volume=POURED_OUT_VOLUME_ML,
+        flow_rate=FLOW_RATE_ML_PER_MINUTE,
+        direction="left",
     )  # Pour out the old solution
     experiment.add_action(
-        pump1.pour_in_volume, volume=INFUSED_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction="right"
+        pump1.pour_in_volume,
+        volume=INFUSED_VOLUME_ML,
+        flow_rate=FLOW_RATE_ML_PER_MINUTE,
+        direction="right",
     )  # Infuse the new solution
     experiment.add_wait(MEASUREMENT_INTERVAL_MINUTES * 60)  # Wait after refreshing the solution
 

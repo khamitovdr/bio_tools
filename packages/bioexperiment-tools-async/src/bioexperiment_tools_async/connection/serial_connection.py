@@ -6,9 +6,12 @@ from typing import Any
 import serial_asyncio
 from loguru import logger
 
-from ..core.config import ConnectionConfig, get_config
-from ..core.exceptions import DeviceCommunicationError, DeviceConnectionError
-from ..core.types import PortName
+from bioexperiment_tools_async.core.config import ConnectionConfig, get_config
+from bioexperiment_tools_async.core.exceptions import (
+    DeviceCommunicationError,
+    DeviceConnectionError,
+)
+from bioexperiment_tools_async.core.types import PortName
 
 
 class SerialConnection:

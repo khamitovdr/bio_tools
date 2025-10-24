@@ -143,7 +143,7 @@ bio_tools/
 Move examples to root level and update all imports:
 
 - `examples/experiment_example.py` - update imports to use new package names
-- `examples/experiment_example.ipynb` - update imports to use new package names  
+- `examples/experiment_example.ipynb` - update imports to use new package names
 - `examples/three_pumps_experiment.py` - update imports to use new package names
 - `examples/sample.env` - verify if changes needed
 - Create `examples/README.md` with setup instructions using poetry

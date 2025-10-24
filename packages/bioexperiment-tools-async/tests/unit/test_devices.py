@@ -13,7 +13,7 @@ from bioexperiment_tools_async.devices import AsyncPump, AsyncSpectrophotometer
 class TestAsyncPump:
     """Tests for AsyncPump device."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_initialization(self):
         """Test pump initialization."""
         pump = AsyncPump("COM0")
@@ -24,7 +24,7 @@ class TestAsyncPump:
         assert not pump.is_connected
         assert pump.default_flow_rate is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_context_manager(self, connected_async_pump):
         """Test pump as async context manager."""
         port = connected_async_pump.port
@@ -36,7 +36,7 @@ class TestAsyncPump:
         # Should be disconnected after context exit
         assert not pump.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_set_default_flow_rate(self, connected_async_pump):
         """Test setting default flow rate."""
         pump = connected_async_pump
@@ -45,7 +45,7 @@ class TestAsyncPump:
         await pump.set_default_flow_rate(flow_rate)
         assert pump.default_flow_rate == flow_rate
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_set_invalid_flow_rate(self, connected_async_pump):
         """Test setting invalid flow rate raises error."""
         pump = connected_async_pump
@@ -56,7 +56,7 @@ class TestAsyncPump:
         with pytest.raises(InvalidDeviceParameterError):
             await pump.set_default_flow_rate(0.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_volume_with_explicit_flow_rate(self, connected_async_pump):
         """Test pouring volume with explicit flow rate."""
         pump = connected_async_pump
@@ -66,7 +66,7 @@ class TestAsyncPump:
         # Set timeout longer than expected duration
         await pump.pour_volume(volume=1.0, flow_rate=10.0, direction=Direction.LEFT, timeout=10.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_volume_with_default_flow_rate(self, connected_async_pump):
         """Test pouring volume using default flow rate."""
         pump = connected_async_pump
@@ -75,7 +75,7 @@ class TestAsyncPump:
         # Should use default flow rate
         await pump.pour_volume(volume=2.0, direction=Direction.RIGHT)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_volume_no_flow_rate(self, connected_async_pump):
         """Test pouring volume without flow rate raises error."""
         pump = connected_async_pump
@@ -85,7 +85,7 @@ class TestAsyncPump:
 
         assert "No flow rate specified" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_invalid_volume(self, connected_async_pump):
         """Test pouring invalid volume raises error."""
         pump = connected_async_pump
@@ -94,7 +94,7 @@ class TestAsyncPump:
         with pytest.raises(InvalidDeviceParameterError):
             await pump.pour_volume(volume=-1.0)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_invalid_direction(self, connected_async_pump):
         """Test pouring with invalid direction raises error."""
         pump = connected_async_pump
@@ -103,7 +103,7 @@ class TestAsyncPump:
         with pytest.raises(InvalidDeviceParameterError):
             await pump.pour_volume(volume=1.0, direction="invalid")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_zero_volume(self, connected_async_pump):
         """Test pouring zero volume (should be instant)."""
         pump = connected_async_pump
@@ -117,14 +117,14 @@ class TestAsyncPump:
         # Should be very fast since no waiting for pour completion
         assert end_time - start_time < 0.5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_continuous_rotation(self, connected_async_pump):
         """Test starting continuous rotation."""
         pump = connected_async_pump
 
         await pump.start_continuous_rotation(flow_rate=6.0, direction=Direction.RIGHT)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_continuous_rotation_with_default_flow_rate(self, connected_async_pump):
         """Test starting continuous rotation with default flow rate."""
         pump = connected_async_pump
@@ -132,7 +132,7 @@ class TestAsyncPump:
 
         await pump.start_continuous_rotation(direction=Direction.LEFT)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_start_continuous_rotation_no_flow_rate(self, connected_async_pump):
         """Test starting continuous rotation without flow rate raises error."""
         pump = connected_async_pump
@@ -140,7 +140,7 @@ class TestAsyncPump:
         with pytest.raises(InvalidDeviceParameterError):
             await pump.start_continuous_rotation()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_stop_continuous_rotation(self, connected_async_pump):
         """Test stopping continuous rotation."""
         pump = connected_async_pump
@@ -150,7 +150,7 @@ class TestAsyncPump:
         await pump.start_continuous_rotation()
         await pump.stop_continuous_rotation()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_operation_on_disconnected_device(self, async_pump, monkeypatch):
         """Test device auto-connection behavior on operations."""
         pump = async_pump
@@ -167,7 +167,7 @@ class TestAsyncPump:
         await pump.disconnect()
         assert not pump.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_concurrent_operations(self, connected_async_pump):
         """Test that concurrent operations are properly serialized."""
         pump = connected_async_pump
@@ -188,7 +188,7 @@ class TestAsyncPump:
 class TestAsyncSpectrophotometer:
     """Tests for AsyncSpectrophotometer device."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectrophotometer_initialization(self):
         """Test spectrophotometer initialization."""
         spectro = AsyncSpectrophotometer("COM1")
@@ -198,7 +198,7 @@ class TestAsyncSpectrophotometer:
         assert spectro.device_id == "spectrophotometer_COM1"
         assert not spectro.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectrophotometer_context_manager(self, connected_async_spectrophotometer):
         """Test spectrophotometer as async context manager."""
         port = connected_async_spectrophotometer.port
@@ -210,7 +210,7 @@ class TestAsyncSpectrophotometer:
         # Should be disconnected after context exit
         assert not spectro.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_temperature(self, connected_async_spectrophotometer):
         """Test getting temperature."""
         spectro = connected_async_spectrophotometer
@@ -219,7 +219,7 @@ class TestAsyncSpectrophotometer:
         assert isinstance(temperature, float)
         assert 0.0 <= temperature <= 100.0  # Reasonable temperature range
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_optical_density(self, connected_async_spectrophotometer):
         """Test measuring optical density."""
         spectro = connected_async_spectrophotometer
@@ -228,7 +228,7 @@ class TestAsyncSpectrophotometer:
         assert isinstance(optical_density, float)
         assert 0.0 <= optical_density <= 10.0  # Reasonable OD range
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_optical_density_with_timeout(self, connected_async_spectrophotometer):
         """Test measuring optical density with custom timeout."""
         spectro = connected_async_spectrophotometer
@@ -236,7 +236,7 @@ class TestAsyncSpectrophotometer:
         optical_density = await spectro.measure_optical_density(timeout=10.0)
         assert isinstance(optical_density, float)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectrophotometer_operation_on_disconnected_device(self, async_spectrophotometer, monkeypatch):
         """Test device auto-connection behavior on operations."""
         spectro = async_spectrophotometer
@@ -254,7 +254,7 @@ class TestAsyncSpectrophotometer:
         await spectro.disconnect()
         assert not spectro.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectrophotometer_concurrent_operations(self, connected_async_spectrophotometer):
         """Test that concurrent operations are properly serialized."""
         spectro = connected_async_spectrophotometer
@@ -271,7 +271,7 @@ class TestAsyncSpectrophotometer:
         assert len(results) == 3
         assert all(isinstance(r, float) for r in results)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_device_id_generation_special_ports(self):
         """Test device ID generation with special port names."""
         # Test Unix-style ports - /dev/ is stripped

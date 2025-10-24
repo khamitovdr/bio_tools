@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
 from time import sleep
-from typing import Callable
 
 import serial
 

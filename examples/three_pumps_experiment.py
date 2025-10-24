@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 # In[ ]:
 
 
+from bioexperiment_experiment import Condition, Experiment
 from bioexperiment_experiment.experiment.collections import Relation, Statistic
-from bioexperiment_experiment import Experiment, Condition
 from bioexperiment_tools import get_connected_devices
-
 
 # In[ ]:
 
@@ -105,7 +103,7 @@ for name in ["pump_out", "pump_food", "pump_drug"]:
 
 # Initialize the experiment
 experiment = Experiment(
-    output_dir=".", # Define the output directory here before running the script
+    output_dir=".",  # Define the output directory here before running the script
 )
 
 # Define the metrics
@@ -127,27 +125,33 @@ od_not_exceeded_threshold = od_exceeded_threshold.negation
 
 # Add the initial actions to pour out the excessive solution and pour in the food
 experiment.add_action(
-    pump_out.pour_in_volume, volume=PUMP_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=OUT
+    pump_out.pour_in_volume,
+    volume=PUMP_OUT_VOLUME_ML,
+    flow_rate=FLOW_RATE_ML_PER_MINUTE,
+    direction=OUT,
 )
 experiment.add_wait(delay_time)
 experiment.add_action(
-    pump_food.pour_in_volume, volume=PUMP_FOOD_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=IN
+    pump_food.pour_in_volume,
+    volume=PUMP_FOOD_VOLUME_ML,
+    flow_rate=FLOW_RATE_ML_PER_MINUTE,
+    direction=IN,
 )
 
 # Add the main experiment loop
 for _ in range(n_solution_refreshes):  # Loop over the number of solution refreshes
     for i in range(n_measurements_per_solution_refresh):  # Loop over the number of measurements per refresh
-        wait_time = (
-            MEASUREMENT_INTERVAL_MINUTES * 60 - delay_time
-            if i == 0 else MEASUREMENT_INTERVAL_MINUTES * 60
-        )
+        wait_time = MEASUREMENT_INTERVAL_MINUTES * 60 - delay_time if i == 0 else MEASUREMENT_INTERVAL_MINUTES * 60
         experiment.add_wait(wait_time)  # Wait for the measurement interval
-        
+
         experiment.add_measurement(spectrophotometer.measure_optical_density, measurement_name=OPTICAL_DENSITY)
         experiment.add_measurement(spectrophotometer.get_temperature, measurement_name=TEMPERATURE)
 
     experiment.add_action(
-        pump_out.pour_in_volume, volume=PUMP_OUT_VOLUME_ML, flow_rate=FLOW_RATE_ML_PER_MINUTE, direction=OUT
+        pump_out.pour_in_volume,
+        volume=PUMP_OUT_VOLUME_ML,
+        flow_rate=FLOW_RATE_ML_PER_MINUTE,
+        direction=OUT,
     )
     experiment.add_wait(delay_time)
 
@@ -157,7 +161,7 @@ for _ in range(n_solution_refreshes):  # Loop over the number of solution refres
         volume=PUMP_DRUG_VOLUME_ML,
         flow_rate=FLOW_RATE_ML_PER_MINUTE,
         direction=IN,
-        condition=od_exceeded_threshold, # Only add the drug if the OD exceeded the threshold
+        condition=od_exceeded_threshold,  # Only add the drug if the OD exceeded the threshold
         info_log_message="Drug added",
     )
     experiment.add_action(
@@ -165,7 +169,7 @@ for _ in range(n_solution_refreshes):  # Loop over the number of solution refres
         volume=PUMP_FOOD_VOLUME_ML,
         flow_rate=FLOW_RATE_ML_PER_MINUTE,
         direction=IN,
-        condition=od_not_exceeded_threshold, # Only add the food if the OD did not exceed the threshold
+        condition=od_not_exceeded_threshold,  # Only add the food if the OD did not exceed the threshold
         info_log_message="Food added",
     )
 

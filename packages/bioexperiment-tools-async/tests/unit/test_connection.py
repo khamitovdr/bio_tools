@@ -1,6 +1,5 @@
 """Unit tests for connection implementations."""
 
-
 import pytest
 from bioexperiment_tools_async.connection import MockConnection, SerialConnection
 from bioexperiment_tools_async.core.config import ConnectionConfig
@@ -10,7 +9,7 @@ from bioexperiment_tools_async.core.exceptions import DeviceCommunicationError, 
 class TestMockConnection:
     """Tests for MockConnection."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_connection_lifecycle(self):
         """Test mock connection connect/disconnect lifecycle."""
         connection = MockConnection("COM0")
@@ -26,7 +25,7 @@ class TestMockConnection:
         await connection.disconnect()
         assert not connection.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_connection_context_manager(self):
         """Test mock connection as async context manager."""
         async with MockConnection("COM0") as connection:
@@ -35,7 +34,7 @@ class TestMockConnection:
 
         assert not connection.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_connection_communication(self):
         """Test mock connection write/read operations."""
         connection = MockConnection("COM0")
@@ -56,7 +55,7 @@ class TestMockConnection:
 
         await connection.disconnect()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_connection_device_type_detection(self):
         """Test that mock connection generates appropriate responses by device type."""
         # Test pump device (even port number)
@@ -78,7 +77,7 @@ class TestMockConnection:
         await pump_connection.disconnect()
         await spectro_connection.disconnect()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mock_connection_disconnected_operations(self):
         """Test that operations on disconnected connection raise appropriate errors."""
         connection = MockConnection("COM0")
@@ -93,7 +92,7 @@ class TestMockConnection:
 class TestSerialConnection:
     """Tests for SerialConnection."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_init(self):
         """Test serial connection initialization."""
         connection = SerialConnection("COM0")
@@ -101,7 +100,7 @@ class TestSerialConnection:
         assert connection.port == "COM0"
         assert not connection.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_with_custom_config(self):
         """Test serial connection with custom configuration."""
         config = ConnectionConfig(
@@ -116,7 +115,7 @@ class TestSerialConnection:
         assert connection._config.timeout == 2.0
         assert connection._config.max_retries == 5
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_mocked_success(self, mock_serial_asyncio):
         """Test successful serial connection with mocked pyserial-asyncio."""
         mock_reader, mock_writer = mock_serial_asyncio
@@ -129,7 +128,7 @@ class TestSerialConnection:
         await connection.disconnect()
         assert not connection.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_write_read(self, mock_serial_asyncio):
         """Test serial connection write/read operations."""
         mock_reader, mock_writer = mock_serial_asyncio
@@ -151,7 +150,7 @@ class TestSerialConnection:
 
         await connection.disconnect()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_communicate(self, mock_serial_asyncio):
         """Test serial connection communicate method."""
         mock_reader, mock_writer = mock_serial_asyncio
@@ -169,7 +168,7 @@ class TestSerialConnection:
 
         await connection.disconnect()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_retry_mechanism(self):
         """Test serial connection retry mechanism on failure."""
         config = ConnectionConfig(max_retries=3, retry_delay=0.01)
@@ -182,7 +181,7 @@ class TestSerialConnection:
         assert "Failed to connect" in str(exc_info.value)
         assert "COM999" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_disconnected_operations(self):
         """Test operations on disconnected serial connection."""
         connection = SerialConnection("COM0")
@@ -193,7 +192,7 @@ class TestSerialConnection:
         with pytest.raises(DeviceConnectionError):
             await connection.read(4)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_read_timeout(self, mock_serial_asyncio):
         """Test serial connection read timeout handling."""
         mock_reader, mock_writer = mock_serial_asyncio
@@ -209,7 +208,7 @@ class TestSerialConnection:
 
         await connection.disconnect()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_serial_connection_multiple_connect_disconnect(self, mock_serial_asyncio):
         """Test multiple connect/disconnect cycles."""
         connection = SerialConnection("COM0")

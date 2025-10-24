@@ -6,9 +6,10 @@ import json
 import os
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime
 from threading import Event, Thread
-from typing import Any, Callable, get_type_hints
+from typing import Any, get_type_hints
 
 try:
     import websockets
@@ -19,8 +20,8 @@ except ImportError:
 
 from bioexperiment_experiment.loader import logger
 
-from .actions import Action, WaitAction, Measurement
-from .collections import Statistic, RelationFunction
+from .actions import Action, Measurement, WaitAction
+from .collections import RelationFunction, Statistic
 
 
 class Metric:
@@ -38,7 +39,7 @@ class Metric:
         self.statistic = statistic
 
     def _measurement_values(self) -> tuple[float]:
-        return tuple(zip(*self.measurements[self.measurement_name]))[1]
+        return tuple(zip(*self.measurements[self.measurement_name], strict=False))[1]
 
     def get_value(self) -> int | float:
         return self.statistic(self._measurement_values())
@@ -169,7 +170,12 @@ class Experiment:
         logger.debug(f"Action added to experiment: {func.__name__}")
 
     def add_measurement(
-        self, func: Callable, measurement_name: str, condition: Condition | None = None, *args: Any, **kwargs: Any
+        self,
+        func: Callable,
+        measurement_name: str,
+        condition: Condition | None = None,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Add a measurement to the experiment.
 
@@ -271,14 +277,14 @@ class Experiment:
             return
 
         self._stop_event.clear()
-        
+
         # Start websocket server if port is specified
         if self.output_socket_port is not None:
             self._websocket_thread = Thread(target=self._start_websocket_server, daemon=True)
             self._websocket_thread.start()
             # Give the websocket server a moment to start
             time.sleep(0.5)
-        
+
         if start_in_background:
             self._thread = Thread(target=self._run)
             self._thread.start()
@@ -292,7 +298,7 @@ class Experiment:
             return
         self._stop_event.set()
         logger.info("Experiment stop signal sent")
-        
+
         # Stop websocket server
         if self.output_socket_port is not None:
             self._stop_websocket_server()
@@ -329,25 +335,24 @@ class Experiment:
         # Format measurements as requested: {measurement_name: [[timestamp, value], ...]}
         measurements_data = {
             measurement_name: [
-                [int(timestamp.timestamp() * 1000), value]
-                for timestamp, value in self.measurements[measurement_name]
-            ]
+                [int(timestamp.timestamp() * 1000), value] for timestamp, value in self.measurements[measurement_name]
+            ],
         }
-        
+
         message = json.dumps(measurements_data)
-        
+
         # Send to all connected clients
         if self._websocket_loop is not None:
             asyncio.run_coroutine_threadsafe(
                 self._broadcast_message(message),
-                self._websocket_loop
+                self._websocket_loop,
             )
-        
+
         logger.debug(f"Measurement '{measurement_name}' sent to {len(self._websocket_clients)} websocket clients")
 
     async def _broadcast_message(self, message: str):
         """Broadcast a message to all connected websocket clients.
-        
+
         :param message: The message to broadcast
         """
         if self._websocket_clients:
@@ -358,30 +363,27 @@ class Experiment:
                 except Exception as e:
                     logger.warning(f"Failed to send message to client: {e}")
                     disconnected_clients.add(client)
-            
+
             # Remove disconnected clients
             self._websocket_clients -= disconnected_clients
 
     async def _handle_websocket_client(self, websocket: WebSocketServerProtocol):
         """Handle a websocket client connection.
-        
+
         :param websocket: The websocket connection
         """
         self._websocket_clients.add(websocket)
         logger.info(f"Websocket client connected. Total clients: {len(self._websocket_clients)}")
-        
+
         try:
             # Send all current measurements to the new client
             all_measurements = {
-                name: [
-                    [timestamp.isoformat(), value]
-                    for timestamp, value in measurements
-                ]
+                name: [[timestamp.isoformat(), value] for timestamp, value in measurements]
                 for name, measurements in self.measurements.items()
             }
             if all_measurements:
                 await websocket.send(json.dumps(all_measurements))
-            
+
             # Keep connection alive and handle incoming messages
             async for message in websocket:
                 logger.debug(f"Received message from client: {message}")
@@ -393,11 +395,12 @@ class Experiment:
 
     def _start_websocket_server(self):
         """Start the websocket server in a separate event loop."""
+
         async def run_server():
             self._websocket_server = await websockets.serve(
                 self._handle_websocket_client,
                 "localhost",
-                self.output_socket_port
+                self.output_socket_port,
             )
             logger.info(f"Websocket server started on port {self.output_socket_port}")
             if self._websocket_server is not None:
@@ -413,7 +416,7 @@ class Experiment:
         if self._websocket_server is not None and self._websocket_loop is not None:
             asyncio.run_coroutine_threadsafe(
                 self._websocket_server.close(),
-                self._websocket_loop
+                self._websocket_loop,
             )
             self._websocket_loop.call_soon_threadsafe(self._websocket_loop.stop)
             if self._websocket_thread is not None:

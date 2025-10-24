@@ -16,18 +16,18 @@ async def get_temperature(device_id: str) -> TemperatureResponse:
     try:
         registry = DeviceRegistry()
         device_type, spectro = registry.get(device_id)
-        
+
         if device_type != "spectrophotometer":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a spectrophotometer")
-        
+
         # Acquire device lock for synchronous operation
         lock = registry.lock(device_id)
         async with lock:
             temperature = spectro.get_temperature()
-        
+
         logger.info(f"Got temperature {temperature:.2f}°C from spectrophotometer {device_id}")
         return TemperatureResponse(temperature=temperature)
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except AttributeError as e:
@@ -44,17 +44,17 @@ async def measure_optical_density(device_id: str, request: MeasureRequest, respo
     try:
         registry = DeviceRegistry()
         device_type, spectro = registry.get(device_id)
-        
+
         if device_type != "spectrophotometer":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a spectrophotometer")
-        
+
         # Submit as async job (measurement takes time)
         job_manager = JobManager()
         lock = registry.lock(device_id)
-        
+
         def measure_operation():
             return spectro.measure_optical_density()
-        
+
         job_id = job_manager.submit(
             device_id=device_id,
             action="measure_optical_density",
@@ -63,11 +63,11 @@ async def measure_optical_density(device_id: str, request: MeasureRequest, respo
             params=request.model_dump(),
             timeout=request.timeout,
         )
-        
+
         logger.info(f"Submitted async optical density measurement job {job_id} for spectrophotometer {device_id}")
         response.status_code = 202
         return JobResponse(job_id=job_id)
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except Exception as e:

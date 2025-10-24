@@ -11,7 +11,7 @@ from bioexperiment_tools_async.devices import AsyncPump, AsyncSpectrophotometer
 class TestPumpIntegration:
     """Integration tests for pump operations."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_complete_workflow(self, monkeypatch):
         """Test complete pump workflow from discovery to operation."""
         clear_config()
@@ -44,7 +44,7 @@ class TestPumpIntegration:
             await asyncio.sleep(0.1)  # Let it run briefly
             await pump.stop_continuous_rotation()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_pumps_concurrent(self, monkeypatch):
         """Test operating multiple pumps concurrently."""
         clear_config()
@@ -75,7 +75,7 @@ class TestPumpIntegration:
         assert len(results) == 3
         assert all(isinstance(device_id, str) for device_id in results)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_error_handling(self, monkeypatch):
         """Test pump error handling in realistic scenarios."""
         clear_config()
@@ -103,7 +103,7 @@ class TestPumpIntegration:
 class TestSpectrophotometerIntegration:
     """Integration tests for spectrophotometer operations."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectrophotometer_complete_workflow(self, monkeypatch):
         """Test complete spectrophotometer workflow."""
         clear_config()
@@ -137,7 +137,7 @@ class TestSpectrophotometerIntegration:
             optical_density2 = await spectro.measure_optical_density(timeout=5.0)
             assert isinstance(optical_density2, float)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_multiple_spectrophotometers_concurrent(self, monkeypatch):
         """Test operating multiple spectrophotometers concurrently."""
         clear_config()
@@ -181,7 +181,7 @@ class TestSpectrophotometerIntegration:
 class TestMixedDeviceIntegration:
     """Integration tests with multiple device types."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mixed_device_discovery(self, monkeypatch):
         """Test discovering mixed device types."""
         clear_config()
@@ -202,7 +202,7 @@ class TestMixedDeviceIntegration:
         all_device_ids = [p.device_id for p in pumps] + [s.device_id for s in spectrophotometers]
         assert len(all_device_ids) == len(set(all_device_ids))  # All unique
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_complex_experiment_workflow(self, monkeypatch):
         """Test a complex experiment workflow with multiple devices."""
         clear_config()
@@ -251,7 +251,7 @@ class TestMixedDeviceIntegration:
             assert isinstance(initial_od, float)
             assert isinstance(final_od, float)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_device_context_manager_exception_handling(self, monkeypatch):
         """Test proper cleanup when exceptions occur in device context managers."""
         clear_config()
@@ -273,7 +273,7 @@ class TestMixedDeviceIntegration:
         # Device should be disconnected after exception
         assert not pump.is_connected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_discovery_operations(self, monkeypatch):
         """Test that discovery can be called concurrently."""
         clear_config()

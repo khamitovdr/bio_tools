@@ -13,7 +13,7 @@ theme:
     - navigation.tracking
     - navigation.top
     - toc.follow
-    
+
   palette:
 
     # Palette toggle for automatic mode

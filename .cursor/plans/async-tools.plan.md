@@ -87,7 +87,7 @@ packages/bioexperiment-tools-async/
 - Implement mock connection for testing and emulation
 - Add comprehensive connection error handling
 
-### Phase 3: Protocol Layer  
+### Phase 3: Protocol Layer
 
 - Define device communication protocols with typed commands
 - Implement message serialization/deserialization
@@ -114,7 +114,7 @@ packages/bioexperiment-tools-async/
 ### Phase 6: Testing & Documentation
 
 - Comprehensive unit test suite with pytest-asyncio
-- Mock implementations for hardware-independent testing  
+- Mock implementations for hardware-independent testing
 - Integration tests for device workflows
 - Performance and concurrency testing
 - API documentation with examples and best practices
@@ -138,7 +138,7 @@ async with AsyncPump("/dev/ttyUSB0") as pump:
 **Structured Configuration:**
 
 - Pydantic models for configuration validation
-- Environment-based configuration with sensible defaults  
+- Environment-based configuration with sensible defaults
 - Device-specific configuration with inheritance
 
 **Error Handling:**

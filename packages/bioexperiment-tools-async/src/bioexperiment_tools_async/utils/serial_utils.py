@@ -7,7 +7,7 @@ import sys
 import serial
 from loguru import logger
 
-from ..core.config import get_config
+from bioexperiment_tools_async.core.config import get_config
 
 
 def bytes_to_int(data: bytes) -> int:
@@ -34,7 +34,8 @@ async def get_available_ports() -> list[str]:
         spectro_ports = [f"COM{i * 2 + 1}" for i in range(config.n_virtual_spectrophotometers)]
         ports = sorted(pump_ports + spectro_ports)
         logger.debug(
-            f"Emulated ports: {ports} (pumps: {config.n_virtual_pumps}, spectros: {config.n_virtual_spectrophotometers})",
+            f"Emulated ports: {ports} "
+            f"(pumps: {config.n_virtual_pumps}, spectros: {config.n_virtual_spectrophotometers})",
         )
         return ports
 

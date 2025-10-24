@@ -5,7 +5,7 @@ from typing import Any
 
 from loguru import logger
 
-from ..core.config import get_config
+from bioexperiment_tools_async.core.config import get_config
 
 
 def setup_logging() -> None:

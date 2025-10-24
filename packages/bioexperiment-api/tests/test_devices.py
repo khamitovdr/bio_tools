@@ -14,11 +14,11 @@ def test_list_devices(client):
     """Test listing devices."""
     response = client.get("/devices")
     assert response.status_code == 200
-    
+
     devices = response.json()
     assert isinstance(devices, list)
     assert len(devices) == 3  # 2 pumps + 1 spectrophotometer
-    
+
     # Check device structure
     for device in devices:
         assert "device_id" in device
@@ -33,12 +33,12 @@ def test_get_device_details(client):
     # First get list of devices
     response = client.get("/devices")
     devices = response.json()
-    
+
     # Test getting details for first device
     device_id = devices[0]["device_id"]
     response = client.get(f"/devices/{device_id}")
     assert response.status_code == 200
-    
+
     device = response.json()
     assert device["device_id"] == device_id
     assert "type" in device
@@ -56,7 +56,7 @@ def test_rescan_devices(client):
     """Test device rescan."""
     response = client.post("/devices:rescan")
     assert response.status_code == 200
-    
+
     result = response.json()
     assert "added" in result
     assert "removed" in result

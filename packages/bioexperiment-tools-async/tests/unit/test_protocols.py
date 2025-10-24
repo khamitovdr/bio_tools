@@ -125,13 +125,13 @@ class TestPumpProtocol:
         """Create pump protocol instance."""
         return PumpProtocol(mock_connection)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pump_protocol_init(self, pump_protocol, mock_connection):
         """Test pump protocol initialization."""
         assert pump_protocol.device_type == DeviceType.PUMP
         assert pump_protocol.connection == mock_connection
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_success(self, pump_protocol, mock_connection):
         """Test successful pump device identification."""
         # Mock successful identification response
@@ -146,7 +146,7 @@ class TestPumpProtocol:
         assert call_args[0] == [1, 2, 3, 4, 181]
         assert call_args[1] == 4
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_wrong_response(self, pump_protocol, mock_connection):
         """Test pump identification with wrong response."""
         # Mock wrong identification response
@@ -155,7 +155,7 @@ class TestPumpProtocol:
         result = await pump_protocol.identify_device()
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_exception(self, pump_protocol, mock_connection):
         """Test pump identification with communication exception."""
         mock_connection.communicate.side_effect = Exception("Communication error")
@@ -163,7 +163,7 @@ class TestPumpProtocol:
         result = await pump_protocol.identify_device()
         assert result is False
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_calibration_volume(self, pump_protocol, mock_connection, monkeypatch):
         """Test getting pump calibration volume."""
         # Mock identification response with calibration data
@@ -177,7 +177,7 @@ class TestPumpProtocol:
         expected_volume = 123456 / 10**5
         assert volume == expected_volume
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_calibration_volume_emulated(self, pump_protocol, mock_connection, monkeypatch):
         """Test getting calibration volume in emulated mode."""
         from bioexperiment_tools_async.core.config import clear_config
@@ -188,7 +188,7 @@ class TestPumpProtocol:
         volume = await pump_protocol.get_calibration_volume()
         assert volume == 1.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_set_flow_rate(self, pump_protocol, mock_connection):
         """Test setting pump flow rate."""
         flow_rate = 7.5
@@ -201,7 +201,7 @@ class TestPumpProtocol:
         expected_speed_param = int(29 / flow_rate)
         assert call_args == [10, 0, 1, expected_speed_param, 0]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_pour_volume(self, pump_protocol, mock_connection):
         """Test pump pour volume operation."""
         # Mock calibration volume response
@@ -233,13 +233,13 @@ class TestSpectrophotometerProtocol:
         """Create spectrophotometer protocol instance."""
         return SpectrophotometerProtocol(mock_connection)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_spectro_protocol_init(self, spectro_protocol, mock_connection):
         """Test spectrophotometer protocol initialization."""
         assert spectro_protocol.device_type == DeviceType.SPECTROPHOTOMETER
         assert spectro_protocol.connection == mock_connection
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identify_device_success(self, spectro_protocol, mock_connection):
         """Test successful spectrophotometer device identification."""
         # Mock successful identification response
@@ -248,7 +248,7 @@ class TestSpectrophotometerProtocol:
         result = await spectro_protocol.identify_device()
         assert result is True
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_temperature(self, spectro_protocol, mock_connection, monkeypatch):
         """Test getting temperature from spectrophotometer."""
         monkeypatch.setenv("BIOEXPERIMENT_EMULATE_DEVICES", "false")
@@ -259,7 +259,7 @@ class TestSpectrophotometerProtocol:
         temperature = await spectro_protocol.get_temperature()
         assert temperature == 25.75
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_temperature_emulated(self, spectro_protocol, mock_connection, monkeypatch):
         """Test getting temperature in emulated mode."""
         from bioexperiment_tools_async.core.config import clear_config
@@ -270,7 +270,7 @@ class TestSpectrophotometerProtocol:
         temperature = await spectro_protocol.get_temperature()
         assert 20.0 <= temperature <= 30.0  # Random range
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_optical_density(self, spectro_protocol, mock_connection, monkeypatch):
         """Test measuring optical density."""
         monkeypatch.setenv("BIOEXPERIMENT_EMULATE_DEVICES", "false")
@@ -286,7 +286,7 @@ class TestSpectrophotometerProtocol:
         assert mock_connection.write.call_count == 1  # Start measurement
         assert mock_connection.communicate.call_count == 1  # Get result
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_measure_optical_density_emulated(self, spectro_protocol, mock_connection, monkeypatch):
         """Test measuring optical density in emulated mode."""
         from bioexperiment_tools_async.core.config import clear_config

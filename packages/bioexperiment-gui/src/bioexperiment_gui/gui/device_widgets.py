@@ -1,7 +1,7 @@
 from abc import ABC
+from collections.abc import Callable
 from datetime import datetime
 from tkinter import DoubleVar, StringVar, simpledialog
-from typing import Callable
 
 import ttkbootstrap as ttk
 from bioexperiment_tools.interfaces import Pump, SerialConnection, Spectrophotometer
@@ -93,7 +93,10 @@ class PumpWidget(DeviceWidget):
 
     def create_continuous_rotation_control(self) -> ttk.Labelframe:
         frame = ttk.Labelframe(
-            self, bootstyle=c.PRIMARY, text="Continuous rotation control", padding=self.FRAME_PADDING
+            self,
+            bootstyle=c.PRIMARY,
+            text="Continuous rotation control",
+            padding=self.FRAME_PADDING,
         )
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(2, weight=1)
@@ -135,12 +138,20 @@ class PumpWidget(DeviceWidget):
         direction_frame.columnconfigure(0, weight=1)
         direction_frame.columnconfigure(1, weight=1)
         right_radio = ttk.Radiobutton(
-            direction_frame, text="Right", variable=self.direction, value="right", bootstyle=("toolbutton", c.PRIMARY)
+            direction_frame,
+            text="Right",
+            variable=self.direction,
+            value="right",
+            bootstyle=("toolbutton", c.PRIMARY),
         )
         right_radio.grid(row=0, column=0, sticky="ew", padx=self.PADX, pady=self.PADY)
 
         left_radio = ttk.Radiobutton(
-            direction_frame, text="Left", variable=self.direction, value="left", bootstyle=("toolbutton", c.PRIMARY)
+            direction_frame,
+            text="Left",
+            variable=self.direction,
+            value="left",
+            bootstyle=("toolbutton", c.PRIMARY),
         )
         left_radio.grid(row=0, column=1, sticky="ew", padx=self.PADX, pady=self.PADY)
 
@@ -194,7 +205,11 @@ class SpectrophotometerWidget(DeviceWidget):
         self.create_widgets()
 
     def create_measurement_display(
-        self, title: str, value_var: DoubleVar, updated_var: StringVar, update_function: Callable
+        self,
+        title: str,
+        value_var: DoubleVar,
+        updated_var: StringVar,
+        update_function: Callable,
     ) -> ttk.Labelframe:
         frame = ttk.Labelframe(self, bootstyle=c.PRIMARY, text=title, padding=self.FRAME_PADDING)
         frame.columnconfigure(0, weight=1)
@@ -225,12 +240,18 @@ class SpectrophotometerWidget(DeviceWidget):
         info_section.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
         temperature_display = self.create_measurement_display(
-            "Temperature, °C", self.temperature, self.temperature_updated, self.measure_temperature
+            "Temperature, °C",
+            self.temperature,
+            self.temperature_updated,
+            self.measure_temperature,
         )
         temperature_display.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 
         optical_density_display = self.create_measurement_display(
-            "Optical density", self.optical_density, self.optical_density_updated, self.measure_optical_density
+            "Optical density",
+            self.optical_density,
+            self.optical_density_updated,
+            self.measure_optical_density,
         )
         optical_density_display.pack(fill=c.X, expand=c.NO, padx=self.PADX, pady=self.PADY)
 

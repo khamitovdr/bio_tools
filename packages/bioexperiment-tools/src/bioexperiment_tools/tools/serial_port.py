@@ -26,7 +26,7 @@ def get_serial_ports() -> list[str]:
         ports = glob.glob("/dev/tty.*")
     else:
         logger.error(f"Unsupported platform: {sys.platform}")
-        raise EnvironmentError("Unsupported platform")
+        raise OSError("Unsupported platform")
 
     if get_settings().EMULATE_DEVICES:
         logger.info("Emulating devices")

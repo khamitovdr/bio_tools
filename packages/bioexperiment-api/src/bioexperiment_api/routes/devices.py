@@ -20,15 +20,15 @@ async def list_devices() -> list[Device]:
     """List all connected devices."""
     try:
         registry = DeviceRegistry()
-        
+
         # Ensure registry is initialized
         if not registry.is_initialized():
             await registry.scan()
-        
+
         devices = registry.list_devices()
         logger.debug(f"Listed {len(devices)} devices")
         return devices
-        
+
     except Exception as e:
         logger.error(f"Error listing devices: {e}")
         raise HTTPException(status_code=500, detail="Failed to list devices")
@@ -41,7 +41,7 @@ async def get_device(device_id: str) -> Device:
         registry = DeviceRegistry()
         device = registry.get_device_details(device_id)
         return device
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except Exception as e:
@@ -55,13 +55,13 @@ async def rescan_devices() -> RescanResponse:
     try:
         registry = DeviceRegistry()
         result = await registry.scan()
-        
+
         logger.info(f"Device rescan completed: {result}")
         return RescanResponse(
             added=result["added"],
-            removed=result["removed"]
+            removed=result["removed"],
         )
-        
+
     except Exception as e:
         logger.error(f"Error during device rescan: {e}")
         raise HTTPException(status_code=500, detail="Failed to rescan devices")

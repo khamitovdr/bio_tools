@@ -44,16 +44,16 @@ from bioexperiment_tools_async import discover_devices, Direction
 async def main():
     # Discover all connected devices
     pumps, spectrophotometers = await discover_devices()
-    
+
     print(f"Found {len(pumps)} pumps and {len(spectrophotometers)} spectrophotometers")
-    
+
     # Use a pump with async context manager
     if pumps:
         async with pumps[0] as pump:
             await pump.set_default_flow_rate(5.0)
             await pump.pour_volume(10.0, direction=Direction.LEFT)
             print("Poured 10 mL to the left")
-    
+
     # Use a spectrophotometer
     if spectrophotometers:
         async with spectrophotometers[0] as spectro:
@@ -74,13 +74,13 @@ from bioexperiment_tools_async import discover_devices, DeviceType
 async def main():
     # Discover only pumps
     pumps, _ = await discover_devices(device_type=DeviceType.PUMP)
-    
+
     # Discover only spectrophotometers with timeout
     _, spectrophotometers = await discover_devices(
         device_type=DeviceType.SPECTROPHOTOMETER,
         timeout=10.0
     )
-    
+
     print(f"Found {len(pumps)} pumps and {len(spectrophotometers)} spectrophotometers")
 
 asyncio.run(main())
@@ -100,7 +100,7 @@ async def operate_pump(pump, volume, flow_rate):
         return f"Pump {pump.device_id} poured {volume} mL"
 
 async def measure_spectro(spectro):
-    """Take measurements from a spectrophotometer.""" 
+    """Take measurements from a spectrophotometer."""
     async with spectro:
         temperature = await spectro.get_temperature()
         optical_density = await spectro.measure_optical_density()
@@ -113,18 +113,18 @@ async def measure_spectro(spectro):
 async def main():
     # Discover devices
     pumps, spectrophotometers = await discover_devices()
-    
+
     # Prepare concurrent tasks
     tasks = []
-    
+
     # Add pump operations
     for i, pump in enumerate(pumps[:3]):  # Use up to 3 pumps
         tasks.append(operate_pump(pump, volume=5.0 + i, flow_rate=3.0 + i))
-    
-    # Add spectrophotometer measurements  
+
+    # Add spectrophotometer measurements
     for spectro in spectrophotometers:
         tasks.append(measure_spectro(spectro))
-    
+
     # Execute all operations concurrently
     if tasks:
         results = await asyncio.gather(*tasks)
@@ -151,7 +151,7 @@ export BIOEXPERIMENT_DISCOVERY_TIMEOUT=30.0
 export BIOEXPERIMENT_DISCOVERY_CONCURRENT_LIMIT=10
 export BIOEXPERIMENT_DEVICE_CACHE_TTL=60.0
 
-# Connection settings  
+# Connection settings
 export BIOEXPERIMENT_CONNECTION__BAUDRATE=9600
 export BIOEXPERIMENT_CONNECTION__TIMEOUT=2.0
 export BIOEXPERIMENT_CONNECTION__MAX_RETRIES=3
@@ -189,11 +189,11 @@ async def main():
         max_retries=5,
         retry_delay=1.0,
     )
-    
+
     # Create pump with custom connection
     connection = SerialConnection("/dev/ttyUSB0", config=config)
     pump = AsyncPump("/dev/ttyUSB0")
-    
+
     async with pump:
         await pump.set_default_flow_rate(8.0)
         await pump.pour_volume(15.0)
@@ -209,19 +209,19 @@ from bioexperiment_tools_async.discovery import DeviceScanner
 
 async def main():
     scanner = DeviceScanner()
-    
+
     # First scan (hits hardware)
     pumps, spectros = await scanner.discover_devices()
     print(f"First scan: {len(pumps)} pumps, {len(spectros)} spectros")
-    
+
     # Second scan (uses cache)
     pumps, spectros = await scanner.discover_devices()
     print(f"Cached scan: {len(pumps)} pumps, {len(spectros)} spectros")
-    
+
     # Get cache statistics
     stats = scanner.get_cache_stats()
     print(f"Cache stats: {stats}")
-    
+
     # Clear cache and rescan
     scanner.clear_cache()
     pumps, spectros = await scanner.discover_devices()
@@ -243,28 +243,28 @@ from bioexperiment_tools_async.core.exceptions import (
 async def main():
     try:
         pumps, _ = await discover_devices(device_type=DeviceType.PUMP, timeout=5.0)
-        
+
         if not pumps:
             print("No pumps found")
             return
-        
+
         pump = pumps[0]
         async with pump:
             await pump.set_default_flow_rate(5.0)
             await pump.pour_volume(10.0, direction=Direction.LEFT)
-            
+
     except DeviceConnectionError as e:
         print(f"Connection failed: {e}")
         print(f"Device: {e.device_id}, Context: {e.context}")
-        
+
     except InvalidDeviceParameterError as e:
         print(f"Invalid parameter: {e}")
         print(f"Operation: {e.operation}")
-        
+
     except DeviceOperationError as e:
         print(f"Operation failed: {e}")
         print(f"Device: {e.device_id}, Context: {e.context}")
-        
+
     except Exception as e:
         print(f"Unexpected error: {e}")
 
@@ -335,7 +335,7 @@ python your_script.py
 The library is built with modern Python practices and clean architecture:
 
 - **Core**: Type definitions, protocols, exceptions, and configuration
-- **Connection**: Async serial communication with retry logic and mocking  
+- **Connection**: Async serial communication with retry logic and mocking
 - **Protocol**: Device communication protocols with typed commands
 - **Devices**: High-level device classes with async context managers
 - **Discovery**: Concurrent device scanning with intelligent caching

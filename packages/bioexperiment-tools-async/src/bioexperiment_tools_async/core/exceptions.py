@@ -25,7 +25,6 @@ class DeviceConnectionError(BioexperimentError):
     """Raised when device connection fails or is lost."""
 
 
-
 class DeviceCommunicationError(BioexperimentError):
     """Raised when communication with device fails."""
 
@@ -47,7 +46,6 @@ class DeviceNotFoundError(BioexperimentError):
     """Raised when a requested device cannot be found."""
 
 
-
 class DeviceOperationError(BioexperimentError):
     """Raised when a device operation fails."""
 
@@ -67,7 +65,5 @@ class DeviceTimeoutError(DeviceOperationError):
     """Raised when a device operation times out."""
 
 
-
 class InvalidDeviceParameterError(DeviceOperationError):
     """Raised when invalid parameters are provided to device operations."""
-

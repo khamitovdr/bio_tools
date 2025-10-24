@@ -81,7 +81,8 @@ async def async_spectrophotometer() -> AsyncGenerator[AsyncSpectrophotometer, No
 
 @pytest.fixture()
 async def connected_async_spectrophotometer(
-    async_spectrophotometer: AsyncSpectrophotometer, monkeypatch,
+    async_spectrophotometer: AsyncSpectrophotometer,
+    monkeypatch,
 ) -> AsyncSpectrophotometer:
     """Provide a connected AsyncSpectrophotometer instance."""
     # Ensure emulated mode for testing

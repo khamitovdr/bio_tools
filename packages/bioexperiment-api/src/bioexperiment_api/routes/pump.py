@@ -19,18 +19,18 @@ async def set_default_flow(device_id: str, request: SetDefaultFlowRequest) -> di
     try:
         registry = DeviceRegistry()
         device_type, pump = registry.get(device_id)
-        
+
         if device_type != "pump":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a pump")
-        
+
         # Acquire device lock for synchronous operation
         lock = registry.lock(device_id)
         async with lock:
             pump.set_default_flow_rate(request.flow_rate)
-        
+
         logger.info(f"Set default flow rate {request.flow_rate} mL/min for pump {device_id}")
         return {"message": f"Default flow rate set to {request.flow_rate} mL/min"}
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except AttributeError as e:
@@ -42,33 +42,31 @@ async def set_default_flow(device_id: str, request: SetDefaultFlowRequest) -> di
 
 
 @router.post("/devices/{device_id}/pump/pour-volume", response_model=Union[JobResponse, dict])
-async def pour_volume(device_id: str, request: PourVolumeRequest, response: Response) -> Union[JobResponse, dict]:
+async def pour_volume(device_id: str, request: PourVolumeRequest, response: Response) -> JobResponse | dict:
     """Pour a specific volume with the pump."""
     try:
         registry = DeviceRegistry()
         device_type, pump = registry.get(device_id)
-        
+
         if device_type != "pump":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a pump")
-        
+
         # Determine if this should be async based on blocking_mode and estimated duration
         estimated_duration = None
         if request.flow_rate and request.volume:
             estimated_duration = (request.volume / request.flow_rate) * 60  # Convert to seconds
         elif pump.default_flow_rate and request.volume:
             estimated_duration = (request.volume / pump.default_flow_rate) * 60
-        
+
         # Use async execution if blocking_mode is False or if operation will take > 2 seconds
         # Also always use async for volumes > 5 mL to demonstrate job functionality
-        use_async = (not request.blocking_mode or 
-                    (estimated_duration and estimated_duration > 2) or 
-                    request.volume > 5.0)
-        
+        use_async = not request.blocking_mode or (estimated_duration and estimated_duration > 2) or request.volume > 5.0
+
         if use_async:
             # Submit as async job
             job_manager = JobManager()
             lock = registry.lock(device_id)
-            
+
             def pour_operation():
                 return pump.pour_in_volume(
                     volume=request.volume,
@@ -77,7 +75,7 @@ async def pour_volume(device_id: str, request: PourVolumeRequest, response: Resp
                     blocking_mode=True,  # Always block in the worker thread
                     info_log_message=f"Pouring {request.volume} mL in direction {request.direction}",
                 )
-            
+
             job_id = job_manager.submit(
                 device_id=device_id,
                 action="pour_volume",
@@ -86,11 +84,11 @@ async def pour_volume(device_id: str, request: PourVolumeRequest, response: Resp
                 params=request.model_dump(),
                 timeout=request.timeout,
             )
-            
+
             logger.info(f"Submitted async pour volume job {job_id} for pump {device_id}")
             response.status_code = 202
             return JobResponse(job_id=job_id)
-        
+
         else:
             # Execute synchronously
             lock = registry.lock(device_id)
@@ -102,10 +100,10 @@ async def pour_volume(device_id: str, request: PourVolumeRequest, response: Resp
                     blocking_mode=request.blocking_mode,
                     info_log_message=f"Pouring {request.volume} mL in direction {request.direction}",
                 )
-            
+
             logger.info(f"Completed synchronous pour volume for pump {device_id}")
             return {"message": f"Poured {request.volume} mL successfully"}
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
@@ -121,22 +119,22 @@ async def start_pump(device_id: str, request: StartPumpRequest) -> dict[str, str
     try:
         registry = DeviceRegistry()
         device_type, pump = registry.get(device_id)
-        
+
         if device_type != "pump":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a pump")
-        
+
         # Acquire device lock for synchronous operation
         lock = registry.lock(device_id)
         async with lock:
             pump.start_continuous_rotation(
                 flow_rate=request.flow_rate,
-                direction=request.direction
+                direction=request.direction,
             )
-        
+
         flow_rate_msg = f" at {request.flow_rate} mL/min" if request.flow_rate else ""
         logger.info(f"Started continuous rotation for pump {device_id} in direction {request.direction}{flow_rate_msg}")
         return {"message": f"Pump started in {request.direction} direction{flow_rate_msg}"}
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
@@ -152,18 +150,18 @@ async def stop_pump(device_id: str) -> dict[str, str]:
     try:
         registry = DeviceRegistry()
         device_type, pump = registry.get(device_id)
-        
+
         if device_type != "pump":
             raise HTTPException(status_code=409, detail=f"Device {device_id} is not a pump")
-        
+
         # Acquire device lock for synchronous operation
         lock = registry.lock(device_id)
         async with lock:
             pump.stop_continuous_rotation()
-        
+
         logger.info(f"Stopped pump {device_id}")
         return {"message": "Pump stopped"}
-        
+
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
     except ValueError as e:
