@@ -5,7 +5,7 @@ from .device_protocol import DeviceProtocol, PumpProtocol, SpectrophotometerProt
 
 __all__ = [
     "DeviceProtocol",
-    "PumpProtocol", 
+    "PumpProtocol",
     "SpectrophotometerProtocol",
     "PumpCommand",
     "SpectrophotometerCommand",

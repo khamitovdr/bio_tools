@@ -11,10 +11,10 @@ from ..core.config import get_config
 def setup_logging() -> None:
     """Configure structured logging for the application."""
     config = get_config()
-    
+
     # Remove default handler
     logger.remove()
-    
+
     # Add custom handler with structured format
     logger.add(
         sys.stderr,

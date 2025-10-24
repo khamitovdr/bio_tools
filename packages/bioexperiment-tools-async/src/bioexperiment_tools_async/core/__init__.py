@@ -3,8 +3,8 @@
 from .config import DeviceConfig, GlobalConfig
 from .exceptions import (
     BioexperimentError,
-    DeviceConnectionError,
     DeviceCommunicationError,
+    DeviceConnectionError,
     DeviceNotFoundError,
     DeviceOperationError,
 )
@@ -17,7 +17,7 @@ __all__ = [
     "DeviceConfig",
     "GlobalConfig",
     "BioexperimentError",
-    "DeviceConnectionError", 
+    "DeviceConnectionError",
     "DeviceCommunicationError",
     "DeviceNotFoundError",
     "DeviceOperationError",
