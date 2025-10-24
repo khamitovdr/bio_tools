@@ -81,20 +81,58 @@ Ensure you have the following installed on your machine:
 
 ## Development
 
-To set up the monorepo for development:
+> **📘 New to the project?** See [QUICK_START.md](QUICK_START.md) for a streamlined setup guide.
+
+### Quick Start
+
+To set up the development environment:
 
 ```sh
-# Recommended: Install all packages in coordinated development mode
-poetry install --no-root
+# Install Task (task runner) - macOS
+brew install go-task
+
+# Or on Linux/other platforms, see: https://taskfile.dev/installation/
+
+# Complete setup (dependencies + pre-commit hooks)
+task setup
+```
+
+### Development Workflow
+
+The monorepo uses modern code quality tools with automated checks:
+
+```sh
+# Format and fix linting issues
+task fix
+
+# Run all quality checks (lint + type checking)
+task check
+
+# Run tests
+task test
+
+# Run full CI pipeline locally
+task ci
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed documentation on:
+- Code quality tools (Ruff, Mypy, pre-commit)
+- Available commands and workflows
+- IDE integration
+- Best practices and troubleshooting
+
+### Manual Setup (without Task)
+
+```sh
+# Install all packages in coordinated development mode
+poetry install --with dev,docs
+
+# Install pre-commit hooks
+pre-commit install
 
 # Run examples and tests
 poetry run python examples/experiment_example.py
 poetry run jupyter notebook examples/
-
-# Or install each package individually
-cd packages/bioexperiment-tools && poetry install && cd ../..
-cd packages/bioexperiment-experiment && poetry install && cd ../..
-cd packages/bioexperiment-gui && poetry install && cd ../..
 ```
 
 ### Building Documentation
@@ -102,8 +140,10 @@ cd packages/bioexperiment-gui && poetry install && cd ../..
 Documentation is maintained at the root level and covers all packages:
 
 ```sh
-# Install with documentation dependencies
-poetry install --no-root --with docs
+# Serve documentation locally (with Task)
+task docs:serve
+
+# Or manually
 mkdocs serve
 ```
 
@@ -131,7 +171,7 @@ from bioexperiment_tools import Pump, Spectrophotometer
 
 experiment = Experiment(output_dir="./results")
 experiment.add_action(pump.pour_in_volume, volume=10.0, flow_rate=5.0)
-experiment.add_measurement(spectrophotometer.measure_optical_density, 
+experiment.add_measurement(spectrophotometer.measure_optical_density,
                           measurement_name="OD")
 experiment.start()
 ```

@@ -1,36 +1,34 @@
-[tool.ruff.lint]
-fixable = ["ALL"]
-unfixable = ["F401"]
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
 
-[tool.ruff]
-line-length = 120
+# Override strict mypy settings for legacy code
+[tool.mypy]
+disallow_untyped_decorators = false
+disallow_untyped_defs = false
 
 [tool.poetry]
-name = "bioexperiment-api"
-version = "0.1.0"
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
 description = "FastAPI REST API for bioexperiment-tools devices"
 license = "MIT"
-authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+name = "bioexperiment-api"
+packages = [
+  {from = "src", include = "bioexperiment_api"}
+]
 readme = "README.md"
 repository = "https://github.com/denis240997/bio_tools"
-packages = [
-    { include = "bioexperiment_api", from = "src"},
-]
+version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
-fastapi = "^0.104.0"
-uvicorn = {extras = ["standard"], version = "^0.24.0"}
-pydantic = "^2.5.0"
 anyio = "^3.7.1"
-bioexperiment-tools = {path = "../bioexperiment-tools", develop = true}
+bioexperiment-tools = {develop = true, path = "../bioexperiment-tools"}
+fastapi = "^0.104.0"
+pydantic = "^2.5.0"
+python = ">=3.12,<3.13"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
 
 [tool.poetry.group.dev.dependencies]
+httpx = "^0.25.0"
 pytest = "^8.3.4"
 pytest-asyncio = "^0.23.0"
-httpx = "^0.25.0"
 ruff = "^0.5.4"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

@@ -1,4 +1,57 @@
+# Pre-commit hooks configuration
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+
 repos:
+  # Ruff - Fast Python linter and formatter (replaces black, isort, flake8, etc.)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.4
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+        types_or: [python, pyi]
+      # Run the formatter
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Mypy - Static type checker
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-pyserial==3.5.0.20240527
+          - munch-stubs==0.1.3
+          - pydantic==2.5.0
+        args: [--config-file=pyproject.toml]
+        # Only check packages with py.typed markers (properly typed packages)
+        exclude: ^(examples/|gui\.py)
+
+  # TOML sorting - Keep pyproject.toml files organized
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.23.1
+    hooks:
+      - id: toml-sort-fix
+        args: [--in-place, --all]
+
+  # General file fixes
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^\.gitignore$
+      - id: end-of-file-fixer
+        exclude: ^\.gitignore$
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Notebook output stripping
   - repo: https://github.com/kynan/nbstripout
     rev: 0.8.1
     hooks:

@@ -1,39 +1,36 @@
-[tool.ruff.lint]
-fixable = ["ALL"]
-unfixable = ["F401"]
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
 
-[tool.ruff]
-line-length = 120
+# Override strict mypy settings for legacy code
+[tool.mypy]
+disallow_untyped_decorators = false
+disallow_untyped_defs = false
 
 [tool.poetry]
-name = "bioexperiment-experiment"
-version = "0.1.0"
-description = "Experiment orchestration framework for biological experiments with actions, measurements, and conditions."
-license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+description = "Experiment orchestration framework for biological experiments with actions, measurements, and conditions."
+include = [
+  {path = "src/bioexperiment_experiment/py.typed"}
+]
+license = "MIT"
+name = "bioexperiment-experiment"
+packages = [
+  {from = "src", include = "bioexperiment_experiment"}
+]
 readme = "README.md"
 repository = "https://github.com/denis240997/bio_tools"
-packages = [
-    { include = "bioexperiment_experiment", from = "src"},
-]
-include = [
-    { path = "src/bioexperiment_experiment/py.typed"},
-]
+version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
-bioexperiment-tools = {path = "../bioexperiment-tools", develop = true}
+bioexperiment-tools = {develop = true, path = "../bioexperiment-tools"}
 loguru = "^0.7.2"
-websockets = { version = "^14.0", optional = true }
+python = ">=3.12,<3.13"
 python-dotenv = "^1.0.1"
+websockets = {optional = true, version = "^14.0"}
 
 [tool.poetry.extras]
 websocket = ["websockets"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.4"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
