@@ -36,6 +36,7 @@ repos:
     hooks:
       - id: toml-sort-fix
         args: [--in-place, --all]
+        exclude: 'poetry\.lock$'  # Never sort poetry.lock files
 
   # General file fixes
   - repo: https://github.com/pre-commit/pre-commit-hooks

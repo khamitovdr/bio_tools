@@ -22,7 +22,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 anyio = "^3.7.1"
 bioexperiment-tools = {develop = true, path = "../bioexperiment-tools"}
-fastapi = "^0.104.0"
+fastapi = "^0.110.0"
 pydantic = "^2.5.0"
 python = ">=3.12,<3.13"
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
