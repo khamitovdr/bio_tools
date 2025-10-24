@@ -1,0 +1,70 @@
+[tool.poetry]
+name = "bioexperiment-tools-async"
+version = "0.1.0"
+description = "Async tools and interfaces for biological experiment devices including pumps and spectrophotometers."
+license = "MIT"
+authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
+readme = "README.md"
+repository = "https://github.com/denis240997/bio_tools"
+packages = [
+    { include = "bioexperiment_tools_async", from = "src"},
+]
+include = [
+    { path = "src/bioexperiment_tools_async/device_configs.json"},
+    { path = "src/bioexperiment_tools_async/py.typed"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+loguru = "^0.7.2"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+pyserial-asyncio = "^0.6"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.23.0"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.12.0"
+ruff = "^0.5.4"
+mypy = "^1.8.0"
+types-pyserial = "^3.5.0.20240527"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "N", "UP", "S", "BLE", "FBT", "A", "COM", "C4", "ICN", "G", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "NPY", "RUF"]
+ignore = ["S101", "B904", "TRY003", "PLR0913", "PLR0915", "PLR0912", "C901"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["S101", "PLR2004", "SLF001"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=bioexperiment_tools_async --cov-report=term-missing --cov-report=html"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

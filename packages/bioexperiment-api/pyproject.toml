@@ -26,8 +26,8 @@ anyio = "^3.7.1"
 bioexperiment-tools = {path = "../bioexperiment-tools", develop = true}
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-pytest-asyncio = "^0.21.0"
+pytest = "^8.3.4"
+pytest-asyncio = "^0.23.0"
 httpx = "^0.25.0"
 ruff = "^0.5.4"
 

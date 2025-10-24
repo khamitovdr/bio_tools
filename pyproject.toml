@@ -14,6 +14,7 @@ repository = "https://github.com/denis240997/bio_tools"
 python = ">=3.12,<3.13"
 # Local packages for coordinated development
 bioexperiment-tools = {path = "packages/bioexperiment-tools", develop = true}
+bioexperiment-tools-async = {path = "packages/bioexperiment-tools-async", develop = true}
 bioexperiment-api = {path = "packages/bioexperiment-api", develop = true}
 bioexperiment-experiment = {path = "packages/bioexperiment-experiment", develop = true}
 bioexperiment-gui = {path = "packages/bioexperiment-gui", develop = true}
@@ -26,6 +27,12 @@ mkdocs-material = "^9.5.30"
 mkdocstrings = {extras = ["python"], version = "^0.25.2"}
 
 [tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.23.0"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.12.0"
+mypy = "^1.8.0"
+types-pyserial = "^3.5.0.20240527"
 ruff = "^0.5.4"
 pre-commit = "^4.0.1"
 notebook = "^7.3.1"
