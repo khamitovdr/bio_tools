@@ -109,6 +109,7 @@ class Experiment:
             None  # Time to keep track of the experiment progress. Initializes on start.
         )
         self.output_dir = output_dir
+        self._was_write_successful: dict[str, bool] = defaultdict(bool)
         self.output_socket_port = output_socket_port
         self._thread: Thread | None = None
         self._stop_event = Event()
@@ -302,12 +303,26 @@ class Experiment:
             return
 
         if measurement_name not in self.measurements:
-            raise ValueError(f"Measurement '{measurement_name}' not found")
+            logger.error(f"Measurement '{measurement_name}' not found")
+            return
 
         output_file = os.path.join(self.output_dir, f"{measurement_name}.csv")
-        with open(output_file, "a") as f:
-            timestamp, value = self.measurements[measurement_name][-1]
-            f.write(f"{timestamp},{value}\n")
+
+        try:
+            if not self._was_write_successful[measurement_name]:
+                logger.debug(f"Rewriting measurement '{measurement_name}' CSV file")
+                with open(output_file, "w") as f:
+                    for timestamp, value in self.measurements[measurement_name]:
+                        f.write(f"{timestamp},{value}\n")
+                self._was_write_successful[measurement_name] = True
+                return
+
+            with open(output_file, "a") as f:
+                timestamp, value = self.measurements[measurement_name][-1]
+                f.write(f"{timestamp},{value}\n")
+        except Exception as e:
+            logger.error(f"Failed to write measurement to CSV file: {e}")
+            self._was_write_successful[measurement_name] = False
 
         logger.debug(f"Measurement '{measurement_name}' written to {output_file}")
 
