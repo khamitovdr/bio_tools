@@ -26,7 +26,6 @@ python = ">=3.12,<3.13"
 loguru = "^0.7.2"
 munch = "^4.0.0"
 httpx = "^0.28"
-python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 munch-stubs = "^0.1.2"
