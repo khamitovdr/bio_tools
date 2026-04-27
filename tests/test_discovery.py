@@ -78,7 +78,7 @@ def test_list_devices_handles_null_discovered_at():
     assert result.discovered_at is None
 
 
-def test_unknown_device_type_is_logged_and_skipped(caplog):
+def test_unknown_device_type_is_skipped():
     response = {
         "devices": [
             {"id": "pump_1", "type": "pump", "type_code": 10, "port": "COM3"},
