@@ -40,6 +40,11 @@ class Pump:
             expected_response_bytes=4,
         )
         calibration_volume = _bytes_to_int(response[1:]) / 10**5
+        if calibration_volume <= 0:
+            raise ValueError(
+                f"{self.device_id}: invalid calibration volume {calibration_volume} "
+                f"from probe response {response!r}"
+            )
         logger.debug(f"{self.device_id}: calibration volume {calibration_volume:.5f}")
         return calibration_volume
 

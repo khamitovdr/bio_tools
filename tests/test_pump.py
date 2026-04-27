@@ -35,6 +35,18 @@ def test_init_runs_calibration_probe_and_stores_volume():
     assert call.expected_response_bytes == 4
 
 
+def test_init_raises_on_zero_calibration_volume():
+    client = FakeLabDevicesClient(responses=[[10, 0, 0, 0]])
+    with pytest.raises(ValueError, match="invalid calibration volume"):
+        Pump(client, "pump_1", "COM3")
+
+
+def test_init_raises_on_short_calibration_response():
+    client = FakeLabDevicesClient(responses=[[10]])  # only the type byte, no calibration bytes
+    with pytest.raises(ValueError, match="invalid calibration volume"):
+        Pump(client, "pump_1", "COM3")
+
+
 def test_set_default_flow_rate_does_not_call_server():
     pump, client = _make_pump()
     initial = len(client.calls)
