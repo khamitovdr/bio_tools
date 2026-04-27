@@ -63,8 +63,8 @@
             ]
         }
     },
-    "spectrophotometer": {
-        "type": "cell density detector",
+    "densitometer": {
+        "type": "densitometer",
         "identification_signal": [
             1,
             2,
