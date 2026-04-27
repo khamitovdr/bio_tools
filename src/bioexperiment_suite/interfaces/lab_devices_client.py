@@ -164,10 +164,8 @@ class LabDevicesClient:
 
         path = f"/devices/{device_id}/command"
         body = {"command": command}
-        logger.debug(f"POST {path} params={params} body={body}")
         data = self._request("POST", path, json=body, params=params)
         response = data.get("response", [])
-        logger.debug(f"POST {path} response={response}")
         return list(response)
 
     def discover(self) -> "DiscoveredDevices":
@@ -215,6 +213,7 @@ class LabDevicesClient:
         params: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Issue an HTTP request and return the parsed JSON body, raising on error."""
+        logger.debug(f"{method} {path} params={params} body={json}")
         try:
             response = self._http.request(method, path, json=json, params=params)
         except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
@@ -228,9 +227,11 @@ class LabDevicesClient:
             self._raise_for_error_response(response)
 
         try:
-            return response.json()
+            data = response.json()
         except ValueError as exc:
             raise TransportError(status=0, code="invalid response", detail=str(exc)) from exc
+        logger.debug(f"{method} {path} -> {response.status_code} {data}")
+        return data
 
     def _raise_for_error_response(self, response: httpx.Response) -> None:
         try:
