@@ -1,6 +1,8 @@
 """HTTP client for the lab_devices_client Go service."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -168,6 +170,42 @@ class LabDevicesClient:
         logger.debug(f"POST {path} response={response}")
         return list(response)
 
+    def discover(self) -> "DiscoveredDevices":
+        data = self._request("POST", "/discover")
+        return self._build_devices(data)
+
+    def list_devices(self) -> "DiscoveredDevices":
+        data = self._request("GET", "/devices")
+        return self._build_devices(data)
+
+    def _build_devices(self, data: dict) -> "DiscoveredDevices":
+        # Local imports prevent a circular dep with pump/densitometer/valve modules.
+        from .pump import Pump
+        from .densitometer import Densitometer
+        from .valve import Valve
+
+        pumps: list[Pump] = []
+        densitometers: list[Densitometer] = []
+        valves: list[Valve] = []
+        for entry in data.get("devices", []):
+            kind = entry.get("type")
+            device_id = entry["id"]
+            port = entry["port"]
+            if kind == "pump":
+                pumps.append(Pump(self, device_id, port))
+            elif kind == "densitometer":
+                densitometers.append(Densitometer(self, device_id, port))
+            elif kind == "valve":
+                valves.append(Valve(self, device_id, port))
+            else:
+                logger.warning(f"Unknown device type from server: {kind!r} (id={device_id})")
+        return DiscoveredDevices(
+            pumps=pumps,
+            densitometers=densitometers,
+            valves=valves,
+            discovered_at=_parse_iso(data.get("discovered_at")),
+        )
+
     def _request(
         self,
         method: str,
@@ -207,3 +245,17 @@ class LabDevicesClient:
         detail = body.get("detail", "")
         exc_cls = _ERROR_CODE_TO_EXCEPTION.get((response.status_code, code), LabDevicesError)
         raise exc_cls(status=response.status_code, code=code, detail=detail)
+
+
+@dataclass
+class DiscoveredDevices:
+    pumps: list["Pump"]
+    densitometers: list["Densitometer"]
+    valves: list["Valve"]
+    discovered_at: datetime | None
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    if value is None:
+        return None
+    return datetime.fromisoformat(value)
