@@ -11,37 +11,64 @@ class LabDevicesError(Exception):
         self.detail = detail
         super().__init__(f"[{status}] {code}: {detail}" if detail else f"[{status}] {code}")
 
+    def __reduce__(self):
+        return (self.__class__, (self.status, self.code, self.detail))
+
 
 class InvalidRequest(LabDevicesError):
-    """400 — invalid request body or query parameter."""
+    """400 — invalid request body or query parameter.
+
+    Server `error` codes: ``"invalid request body"``, ``"invalid query param"``.
+    """
 
 
 class DeviceNotFound(LabDevicesError):
-    """404 — the requested device id is not in the registry."""
+    """404 — the requested device id is not in the registry.
+
+    Server `error` code: ``"device not found"``.
+    """
 
 
 class DeviceBusy(LabDevicesError):
-    """409 — another caller currently holds the device's mutex."""
+    """409 — another caller currently holds the device's mutex.
+
+    Server `error` code: ``"device busy"``.
+    """
 
 
 class DiscoveryInProgress(LabDevicesError):
-    """409 — a discovery pass is already running."""
+    """409 — a discovery pass is already running.
+
+    Server `error` code: ``"discovery in progress"``.
+    """
 
 
 class DiscoveryFailed(LabDevicesError):
-    """500 — the service could not enumerate ports."""
+    """500 — the service could not enumerate ports.
+
+    Server `error` code: ``"discovery failed"``.
+    """
 
 
 class DeviceUnreachable(LabDevicesError):
-    """503 — the service could not re-open the device's serial port."""
+    """503 — the service could not re-open the device's serial port.
+
+    Server `error` code: ``"device unreachable"``.
+    """
 
 
 class DeviceIOFailed(LabDevicesError):
-    """503 — generic device I/O failure that the server could not recover from."""
+    """503 — generic device I/O failure that the server could not recover from.
+
+    Server `error` code: ``"device i/o failed"``.
+    """
 
 
 class DeviceIdentityChanged(LabDevicesError):
-    """503 — the device's identity changed on the wire; it has been removed from the registry."""
+    """503 — the device's identity changed on the wire; it has been removed from the registry.
+
+    Server `error` code: ``"device identity changed"``.
+    """
 
 
 class TransportError(LabDevicesError):
