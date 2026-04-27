@@ -161,6 +161,28 @@ def test_send_command_translates_read_timeout_to_transport_error():
     assert exc_info.value.code == "read timeout"
 
 
+def test_send_command_translates_connect_timeout_to_connection_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("connect timed out")
+
+    with _make_client(handler) as client:
+        with pytest.raises(TransportError) as exc_info:
+            client.send_command("pump_1", command=[1, 2, 3, 4, 0], wait_for_response=False)
+
+    assert exc_info.value.code == "connection error"
+
+
+def test_send_command_translates_write_timeout_to_read_timeout():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.WriteTimeout("write timed out")
+
+    with _make_client(handler) as client:
+        with pytest.raises(TransportError) as exc_info:
+            client.send_command("pump_1", command=[1, 2, 3, 4, 0], wait_for_response=False)
+
+    assert exc_info.value.code == "read timeout"
+
+
 def test_send_command_translates_invalid_json_to_transport_error():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, content=b"not json at all")

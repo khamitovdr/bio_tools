@@ -1,7 +1,6 @@
 """HTTP client for the lab_devices_client Go service."""
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import httpx
@@ -180,9 +179,9 @@ class LabDevicesClient:
         """Issue an HTTP request and return the parsed JSON body, raising on error."""
         try:
             response = self._http.request(method, path, json=json, params=params)
-        except httpx.ConnectError as exc:
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
             raise TransportError(status=0, code="connection error", detail=str(exc)) from exc
-        except (httpx.ReadTimeout, httpx.TimeoutException) as exc:
+        except (httpx.ReadTimeout, httpx.WriteTimeout, httpx.PoolTimeout) as exc:
             raise TransportError(status=0, code="read timeout", detail=str(exc)) from exc
         except httpx.HTTPError as exc:
             raise TransportError(status=0, code="connection error", detail=str(exc)) from exc
