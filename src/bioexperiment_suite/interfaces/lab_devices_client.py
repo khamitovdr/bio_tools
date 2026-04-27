@@ -1,6 +1,15 @@
 """HTTP client for the lab_devices_client Go service."""
 from __future__ import annotations
 
+import json
+from typing import Any
+
+import httpx
+
+from bioexperiment_suite.loader import logger
+
+
+# --- exception hierarchy ---
 
 class LabDevicesError(Exception):
     """Base for every error raised by the lab_devices HTTP client."""
@@ -77,3 +86,125 @@ class TransportError(LabDevicesError):
     `status` is 0 because no HTTP response was completed. `code` is one of
     "connection error", "read timeout", "invalid response".
     """
+
+
+# --- error mapping ---
+
+_ERROR_CODE_TO_EXCEPTION: dict[tuple[int, str], type[LabDevicesError]] = {
+    (400, "invalid request body"): InvalidRequest,
+    (400, "invalid query param"): InvalidRequest,
+    (404, "device not found"): DeviceNotFound,
+    (409, "device busy"): DeviceBusy,
+    (409, "discovery in progress"): DiscoveryInProgress,
+    (500, "discovery failed"): DiscoveryFailed,
+    (503, "device unreachable"): DeviceUnreachable,
+    (503, "device i/o failed"): DeviceIOFailed,
+    (503, "device identity changed"): DeviceIdentityChanged,
+}
+
+
+# --- client ---
+
+class LabDevicesClient:
+    """HTTP client for the lab_devices_client service.
+
+    The constructor opens a single httpx.Client kept alive for the object's
+    lifetime. Use as a context manager, or call close() explicitly.
+    """
+
+    def __init__(
+        self,
+        port: int,
+        host: str = "chisel",
+        request_timeout_sec: float = 5.0,
+    ):
+        self.host = host
+        self.port = port
+        self._http = httpx.Client(
+            base_url=f"http://{host}:{port}",
+            timeout=request_timeout_sec,
+        )
+
+    def close(self) -> None:
+        self._http.close()
+
+    def __enter__(self) -> "LabDevicesClient":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    def send_command(
+        self,
+        device_id: str,
+        command: list[int],
+        *,
+        wait_for_response: bool,
+        expected_response_bytes: int | None = None,
+        timeout_ms: int | None = None,
+        inter_byte_ms: int | None = None,
+    ) -> list[int]:
+        """Send a byte sequence to a discovered device and return its response bytes.
+
+        Query-parameter policy:
+          * `wait_for_response` is always sent (callers always pass it).
+          * `expected_response_bytes` is sent only when `wait_for_response=True`
+            and the caller passed a value.
+          * `timeout_ms` and `inter_byte_ms` are sent only when explicitly passed
+            (otherwise the server's context-dependent defaults apply).
+        """
+        params: dict[str, str] = {"wait_for_response": "true" if wait_for_response else "false"}
+        if wait_for_response and expected_response_bytes is not None:
+            params["expected_response_bytes"] = str(expected_response_bytes)
+        if timeout_ms is not None:
+            params["timeout_ms"] = str(timeout_ms)
+        if inter_byte_ms is not None:
+            params["inter_byte_ms"] = str(inter_byte_ms)
+
+        path = f"/devices/{device_id}/command"
+        body = {"command": command}
+        logger.debug(f"POST {path} params={params} body={body}")
+        data = self._request("POST", path, json=body, params=params)
+        response = data.get("response", [])
+        logger.debug(f"POST {path} response={response}")
+        return list(response)
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict | None = None,
+        params: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Issue an HTTP request and return the parsed JSON body, raising on error."""
+        try:
+            response = self._http.request(method, path, json=json, params=params)
+        except httpx.ConnectError as exc:
+            raise TransportError(status=0, code="connection error", detail=str(exc)) from exc
+        except (httpx.ReadTimeout, httpx.TimeoutException) as exc:
+            raise TransportError(status=0, code="read timeout", detail=str(exc)) from exc
+        except httpx.HTTPError as exc:
+            raise TransportError(status=0, code="connection error", detail=str(exc)) from exc
+
+        if response.status_code >= 400:
+            self._raise_for_error_response(response)
+
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise TransportError(status=0, code="invalid response", detail=str(exc)) from exc
+
+    def _raise_for_error_response(self, response: httpx.Response) -> None:
+        try:
+            body = response.json()
+        except ValueError:
+            raise LabDevicesError(
+                status=response.status_code,
+                code="invalid response",
+                detail=response.text,
+            )
+        code = body.get("error", "")
+        detail = body.get("detail", "")
+        exc_cls = _ERROR_CODE_TO_EXCEPTION.get((response.status_code, code), LabDevicesError)
+        raise exc_cls(status=response.status_code, code=code, detail=detail)
