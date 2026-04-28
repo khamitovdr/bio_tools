@@ -7,7 +7,7 @@ line-length = 120
 
 [tool.poetry]
 name = "bioexperiment-suite"
-version = "0.6.0"
+version = "0.6.1"
 description = "Python toolbox for managing biological experiment devices via the lab_devices_client HTTP service."
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
@@ -22,7 +22,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
+python = ">=3.12,<4"
 loguru = "^0.7.2"
 munch = "^4.0.0"
 httpx = "^0.28"
@@ -31,7 +31,6 @@ httpx = "^0.28"
 munch-stubs = "^0.1.2"
 ruff = "^0.5.4"
 notebook = "^7.3.1"
-pyinstaller = "^6.9.0"
 nbstripout = "^0.8.1"
 pre-commit = "^4.0.1"
 ipykernel = "^7.2.0"
