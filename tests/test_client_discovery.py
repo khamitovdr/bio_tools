@@ -287,3 +287,51 @@ def test_constructor_rejects_positional_port():
     """The signature is keyword-only; positional args should be rejected."""
     with pytest.raises(TypeError):
         LabDevicesClient(9001)  # type: ignore[misc]
+
+
+def test_list_registered_users_returns_sorted_keys(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "zeta_lab": {"host": "chisel", "port": 8091},
+                "alpha_lab": {"host": "chisel", "port": 8089},
+                "mid_lab": {"host": "chisel", "port": 8090},
+            },
+        )
+
+    mock_discovery(handler)
+
+    assert LabDevicesClient.list_registered_users() == ["alpha_lab", "mid_lab", "zeta_lab"]
+
+
+def test_list_registered_users_empty_roster(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={})
+
+    mock_discovery(handler)
+
+    assert LabDevicesClient.list_registered_users() == []
+
+
+def test_list_registered_users_propagates_bridge_unreachable(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("nope")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ClientLookupEndpointUnreachable):
+        LabDevicesClient.list_registered_users()
+
+
+def test_list_registered_users_uses_explicit_discovery_url(mock_discovery):
+    seen_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_urls.append(str(request.url))
+        return httpx.Response(200, json={})
+
+    mock_discovery(handler)
+
+    LabDevicesClient.list_registered_users(discovery_url="http://custom.example/api/")
+    assert seen_urls == ["http://custom.example/api/"]

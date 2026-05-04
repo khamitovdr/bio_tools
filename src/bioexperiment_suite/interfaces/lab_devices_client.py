@@ -269,6 +269,22 @@ class LabDevicesClient:
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
 
+    @classmethod
+    def list_registered_users(
+        cls,
+        *,
+        discovery_url: str | None = None,
+        request_timeout_sec: float = 5.0,
+    ) -> list[str]:
+        """Return sorted names from the bridge roster — registered, regardless of connectivity.
+
+        Raises ClientLookupEndpointUnreachable / ClientLookupEndpointError on
+        bridge-level failures.
+        """
+        url = _resolve_discovery_url(discovery_url)
+        roster = _fetch_roster(url, request_timeout_sec)
+        return sorted(roster.keys())
+
     def send_command(
         self,
         device_id: str,
