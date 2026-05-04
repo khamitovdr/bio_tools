@@ -71,3 +71,104 @@ def test_fetch_roster_returns_parsed_body(mock_discovery):
 
     result = ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
     assert result == roster
+
+
+def test_fetch_roster_connection_error_raises_unreachable(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("refused")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointUnreachable) as info:
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+    assert "siteapp" in str(info.value)
+
+
+def test_fetch_roster_connect_timeout_raises_unreachable(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("connect timed out")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointUnreachable):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_fetch_roster_read_timeout_raises_unreachable(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("read timed out")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointUnreachable):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_fetch_roster_5xx_raises_endpoint_error(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError) as info:
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+    assert "500" in str(info.value)
+
+
+def test_fetch_roster_non_200_raises_endpoint_error(mock_discovery):
+    """The contract says 200 or 500. Anything else is a contract violation."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, text="not found")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_fetch_roster_invalid_json_raises_endpoint_error(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b"not json at all")
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_fetch_roster_non_object_body_raises_endpoint_error(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=["not", "a", "dict"])
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_fetch_roster_malformed_entry_raises_endpoint_error(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"khamit_desktop": {"host": "chisel"}},  # missing port
+        )
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError) as info:
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+    assert "khamit_desktop" in str(info.value)
+
+
+def test_fetch_roster_wrong_typed_entry_raises_endpoint_error(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"khamit_desktop": {"host": "chisel", "port": "8089"}},  # port as str
+        )
+
+    mock_discovery(handler)
+
+    with pytest.raises(ldc_mod.ClientLookupEndpointError):
+        ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
