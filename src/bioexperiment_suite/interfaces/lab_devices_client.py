@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -144,6 +145,14 @@ def _build_discovery_client(timeout: float) -> httpx.Client:
     return httpx.Client(timeout=timeout)
 
 
+def _build_probe_client(host: str, port: int, timeout: float) -> httpx.Client:
+    """Factory for per-machine probe clients used by list_active_users.
+
+    Module-level so tests can monkeypatch it to inject a MockTransport.
+    """
+    return httpx.Client(base_url=f"http://{host}:{port}", timeout=timeout)
+
+
 def _fetch_roster(discovery_url: str, request_timeout_sec: float) -> dict[str, dict[str, Any]]:
     """GET the bridge endpoint and return the parsed roster.
 
@@ -284,6 +293,58 @@ class LabDevicesClient:
         url = _resolve_discovery_url(discovery_url)
         roster = _fetch_roster(url, request_timeout_sec)
         return sorted(roster.keys())
+
+    @classmethod
+    def list_active_users(
+        cls,
+        *,
+        discovery_url: str | None = None,
+        request_timeout_sec: float = 5.0,
+        probe_timeout_sec: float = 2.0,
+        max_workers: int = 8,
+    ) -> list[str]:
+        """Return sorted names whose lab_devices_client endpoint currently answers.
+
+        Probes ``GET /devices`` against each registered machine in parallel
+        threads. Any HTTP response (2xx/4xx/5xx) counts as active; only
+        network-level failures count as inactive.
+
+        Bridge-level errors (ClientLookupEndpointUnreachable /
+        ClientLookupEndpointError) propagate to the caller. Per-probe
+        errors are swallowed.
+        """
+        url = _resolve_discovery_url(discovery_url)
+        roster = _fetch_roster(url, request_timeout_sec)
+        if not roster:
+            return []
+
+        def probe(item: tuple[str, dict[str, Any]]) -> str | None:
+            name, entry = item
+            try:
+                with _build_probe_client(
+                    entry["host"], entry["port"], probe_timeout_sec
+                ) as client:
+                    client.get("/devices")
+                return name
+            except (
+                httpx.ConnectError,
+                httpx.ConnectTimeout,
+                httpx.ReadTimeout,
+                httpx.WriteTimeout,
+                httpx.PoolTimeout,
+            ):
+                return None
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    f"probe to {name} ({entry['host']}:{entry['port']}) raised "
+                    f"unexpected error: {exc!r}"
+                )
+                return None
+
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            results = list(ex.map(probe, roster.items()))
+
+        return sorted(name for name in results if name is not None)
 
     def send_command(
         self,

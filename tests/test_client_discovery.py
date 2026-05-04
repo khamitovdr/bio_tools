@@ -335,3 +335,137 @@ def test_list_registered_users_uses_explicit_discovery_url(mock_discovery):
 
     LabDevicesClient.list_registered_users(discovery_url="http://custom.example/api/")
     assert seen_urls == ["http://custom.example/api/"]
+
+
+@pytest.fixture
+def mock_probes(monkeypatch):
+    """Patch _build_probe_client to use httpx.MockTransport per (host, port).
+
+    Returns a setter: call set_handler(host, port, callable) to install a
+    handler for that target. Unregistered targets behave as connection-refused.
+    """
+    handlers: dict[tuple[str, int], Callable[[httpx.Request], httpx.Response]] = {}
+
+    def factory(host: str, port: int, timeout: float) -> httpx.Client:
+        handler = handlers.get((host, port))
+        if handler is None:
+            def refused(_req: httpx.Request) -> httpx.Response:
+                raise httpx.ConnectError("refused")
+            handler = refused
+        return httpx.Client(
+            base_url=f"http://{host}:{port}",
+            transport=httpx.MockTransport(handler),
+            timeout=timeout,
+        )
+
+    monkeypatch.setattr(ldc_mod, "_build_probe_client", factory)
+
+    def set_handler(host: str, port: int, handler: Callable[[httpx.Request], httpx.Response]) -> None:
+        handlers[(host, port)] = handler
+
+    return set_handler
+
+
+def _devices_ok_handler(request: httpx.Request) -> httpx.Response:
+    assert request.url.path == "/devices"
+    return httpx.Response(200, json={"devices": [], "discovered_at": None})
+
+
+def test_list_active_users_returns_only_responsive(mock_discovery, mock_probes):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "alive_lab": {"host": "chisel", "port": 8089},
+                "refused_lab": {"host": "chisel", "port": 8090},
+                "timeout_lab": {"host": "chisel", "port": 8091},
+            },
+        )
+
+    mock_discovery(discovery_handler)
+    mock_probes("chisel", 8089, _devices_ok_handler)
+    # 8090 and 8091 are unregistered → default connection-refused behavior.
+    # For timeout, override explicitly to make the intent obvious.
+
+    def timeout_handler(_req: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("connect timed out")
+
+    mock_probes("chisel", 8091, timeout_handler)
+
+    active = LabDevicesClient.list_active_users()
+    assert active == ["alive_lab"]
+
+
+def test_list_active_users_treats_5xx_response_as_active(mock_discovery, mock_probes):
+    """Any HTTP response (even 500) means the service is up."""
+
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"unhappy_lab": {"host": "chisel", "port": 8089}}
+        )
+
+    def probe_500(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    mock_discovery(discovery_handler)
+    mock_probes("chisel", 8089, probe_500)
+
+    assert LabDevicesClient.list_active_users() == ["unhappy_lab"]
+
+
+def test_list_active_users_treats_4xx_response_as_active(mock_discovery, mock_probes):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"weird_lab": {"host": "chisel", "port": 8089}}
+        )
+
+    def probe_404(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    mock_discovery(discovery_handler)
+    mock_probes("chisel", 8089, probe_404)
+
+    assert LabDevicesClient.list_active_users() == ["weird_lab"]
+
+
+def test_list_active_users_returns_sorted(mock_discovery, mock_probes):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "zeta_lab": {"host": "chisel", "port": 8091},
+                "alpha_lab": {"host": "chisel", "port": 8089},
+            },
+        )
+
+    mock_discovery(discovery_handler)
+    mock_probes("chisel", 8089, _devices_ok_handler)
+    mock_probes("chisel", 8091, _devices_ok_handler)
+
+    assert LabDevicesClient.list_active_users() == ["alpha_lab", "zeta_lab"]
+
+
+def test_list_active_users_empty_roster(mock_discovery):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={})
+
+    mock_discovery(discovery_handler)
+    assert LabDevicesClient.list_active_users() == []
+
+
+def test_list_active_users_propagates_bridge_unreachable(mock_discovery):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("nope")
+
+    mock_discovery(discovery_handler)
+    with pytest.raises(ClientLookupEndpointUnreachable):
+        LabDevicesClient.list_active_users()
+
+
+def test_list_active_users_propagates_bridge_500(mock_discovery):
+    def discovery_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    mock_discovery(discovery_handler)
+    with pytest.raises(ClientLookupEndpointError):
+        LabDevicesClient.list_active_users()
