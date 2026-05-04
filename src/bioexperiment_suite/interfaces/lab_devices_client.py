@@ -225,10 +225,34 @@ class LabDevicesClient:
 
     def __init__(
         self,
-        port: int,
-        host: str = "chisel",
+        *,
+        port: int | None = None,
+        host: str | None = None,
+        user: str | None = None,
+        discovery_url: str | None = None,
         request_timeout_sec: float = 5.0,
     ):
+        if user is not None and port is not None:
+            raise TypeError("user= and port= are mutually exclusive")
+        if user is None and port is None:
+            raise TypeError("either user= or port= must be provided")
+        if user is not None and host is not None:
+            raise TypeError("host= cannot be combined with user=")
+        if port is not None and discovery_url is not None:
+            raise TypeError("discovery_url= cannot be combined with port=")
+
+        if user is not None:
+            url = _resolve_discovery_url(discovery_url)
+            roster = _fetch_roster(url, request_timeout_sec)
+            if user not in roster:
+                raise UnknownLabClient(name=user, available=sorted(roster.keys()))
+            entry = roster[user]
+            host = entry["host"]
+            port = entry["port"]
+        else:
+            if host is None:
+                host = "chisel"
+
         self.host = host
         self.port = port
         self._http = httpx.Client(

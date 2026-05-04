@@ -11,6 +11,7 @@ from bioexperiment_suite.interfaces.lab_devices_client import (
     ClientLookupEndpointError,
     ClientLookupEndpointUnreachable,
     ClientLookupError,
+    LabDevicesClient,
     UnknownLabClient,
 )
 
@@ -198,3 +199,65 @@ def test_default_discovery_url_constant():
 
 def test_discovery_url_env_var_constant():
     assert ldc_mod.DISCOVERY_URL_ENV_VAR == "LAB_DEVICES_DISCOVERY_URL"
+
+
+def test_constructor_with_user_resolves_via_bridge(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "khamit_desktop": {"host": "chisel", "port": 8089},
+                "another_lab": {"host": "chisel", "port": 8090},
+            },
+        )
+
+    mock_discovery(handler)
+
+    client = LabDevicesClient(user="khamit_desktop")
+    try:
+        assert client.host == "chisel"
+        assert client.port == 8089
+        assert str(client._http.base_url) == "http://chisel:8089"
+    finally:
+        client.close()
+
+
+def test_constructor_with_user_passes_explicit_discovery_url(mock_discovery):
+    seen_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_urls.append(str(request.url))
+        return httpx.Response(200, json={"x": {"host": "chisel", "port": 1}})
+
+    mock_discovery(handler)
+
+    LabDevicesClient(
+        user="x", discovery_url="http://custom.example/api/clients/"
+    ).close()
+    assert seen_urls == ["http://custom.example/api/clients/"]
+
+
+def test_constructor_with_user_unknown_raises(mock_discovery):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"another_lab": {"host": "chisel", "port": 8090}},
+        )
+
+    mock_discovery(handler)
+
+    with pytest.raises(UnknownLabClient) as info:
+        LabDevicesClient(user="khamit_desktp")
+    assert info.value.name == "khamit_desktp"
+    assert info.value.available == ["another_lab"]
+
+
+def test_constructor_with_port_path_unaffected():
+    """The original construction path keeps working without touching the bridge."""
+    client = LabDevicesClient(port=9001)
+    try:
+        assert client.host == "chisel"
+        assert client.port == 9001
+        assert str(client._http.base_url) == "http://chisel:9001"
+    finally:
+        client.close()
