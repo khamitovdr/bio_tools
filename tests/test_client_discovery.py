@@ -469,3 +469,17 @@ def test_list_active_users_propagates_bridge_500(mock_discovery):
     mock_discovery(discovery_handler)
     with pytest.raises(ClientLookupEndpointError):
         LabDevicesClient.list_active_users()
+
+
+def test_new_exceptions_are_re_exported_from_interfaces():
+    from bioexperiment_suite.interfaces import (
+        ClientLookupEndpointError,
+        ClientLookupEndpointUnreachable,
+        ClientLookupError,
+        UnknownLabClient,
+    )
+
+    assert ClientLookupError is ldc_mod.ClientLookupError
+    assert ClientLookupEndpointUnreachable is ldc_mod.ClientLookupEndpointUnreachable
+    assert ClientLookupEndpointError is ldc_mod.ClientLookupEndpointError
+    assert UnknownLabClient is ldc_mod.UnknownLabClient
