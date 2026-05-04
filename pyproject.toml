@@ -7,7 +7,7 @@ line-length = 120
 
 [tool.poetry]
 name = "bioexperiment-suite"
-version = "0.6.1"
+version = "0.7.0"
 description = "Python toolbox for managing biological experiment devices via the lab_devices_client HTTP service."
 license = "MIT"
 authors = ["Denis Khamitov <hamitov.97@mail.ru>"]
