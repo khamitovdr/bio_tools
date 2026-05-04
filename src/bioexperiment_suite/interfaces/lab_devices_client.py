@@ -89,6 +89,39 @@ class TransportError(LabDevicesError):
     """
 
 
+# --- bridge-level discovery errors (parallel hierarchy) ---
+
+
+class ClientLookupError(Exception):
+    """Bridge-level discovery failure.
+
+    Distinct from LabDevicesError (which models HTTP errors from the
+    lab_devices_client service itself). Lookup errors come from the
+    lab-bridge roster endpoint, a different system.
+    """
+
+
+class ClientLookupEndpointUnreachable(ClientLookupError):
+    """Bridge endpoint refused the connection or timed out.
+
+    Typical cause: the caller is not on the docker `labnet` network.
+    Surfaced as a configuration error, not a generic ConnectionError.
+    """
+
+
+class ClientLookupEndpointError(ClientLookupError):
+    """Bridge returned 5xx, or the response body was missing/non-JSON/wrong shape."""
+
+
+class UnknownLabClient(ClientLookupError):
+    """Requested user name is not in the bridge roster."""
+
+    def __init__(self, name: str, available: list[str]):
+        self.name = name
+        self.available = available
+        super().__init__(f"unknown lab client {name!r}; available: {available}")
+
+
 # --- error mapping ---
 
 _ERROR_CODE_TO_EXCEPTION: dict[tuple[int, str], type[LabDevicesError]] = {
