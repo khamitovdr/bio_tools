@@ -122,6 +122,72 @@ class UnknownLabClient(ClientLookupError):
         super().__init__(f"unknown lab client {name!r}; available: {available}")
 
 
+# --- discovery helpers ---
+
+
+def _build_discovery_client(timeout: float) -> httpx.Client:
+    """Factory for the short-lived client used to fetch the bridge roster.
+
+    Module-level so tests can monkeypatch it to inject a MockTransport.
+    """
+    return httpx.Client(timeout=timeout)
+
+
+def _fetch_roster(discovery_url: str, request_timeout_sec: float) -> dict[str, dict[str, Any]]:
+    """GET the bridge endpoint and return the parsed roster.
+
+    Raises ClientLookupEndpointUnreachable / ClientLookupEndpointError.
+    Does NOT raise UnknownLabClient — caller decides whether a missing
+    user is fatal (constructor) or just absent (listing).
+    """
+    with _build_discovery_client(request_timeout_sec) as client:
+        try:
+            response = client.get(discovery_url)
+        except (
+            httpx.ConnectError,
+            httpx.ConnectTimeout,
+            httpx.ReadTimeout,
+            httpx.WriteTimeout,
+            httpx.PoolTimeout,
+        ) as exc:
+            raise ClientLookupEndpointUnreachable(
+                f"discovery endpoint unreachable at {discovery_url}: {exc}"
+            ) from exc
+
+    if response.status_code != 200:
+        body_excerpt = response.text[:200]
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned status "
+            f"{response.status_code}: {body_excerpt}"
+        )
+
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned invalid JSON: {exc}"
+        ) from exc
+
+    if not isinstance(body, dict):
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned non-object body: "
+            f"{type(body).__name__}"
+        )
+
+    for name, entry in body.items():
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("host"), str)
+            or not isinstance(entry.get("port"), int)
+        ):
+            raise ClientLookupEndpointError(
+                f"discovery endpoint at {discovery_url} returned malformed entry "
+                f"for {name!r}: {entry!r}"
+            )
+
+    return body
+
+
 # --- error mapping ---
 
 _ERROR_CODE_TO_EXCEPTION: dict[tuple[int, str], type[LabDevicesError]] = {
