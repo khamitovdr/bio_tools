@@ -161,3 +161,6 @@ cython_debug/
 
 # Testing files
 *sandbox*
+
+# Git worktrees
+.worktrees/

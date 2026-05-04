@@ -1,6 +1,8 @@
 """HTTP client for the lab_devices_client Go service."""
 from __future__ import annotations
 
+import os
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -89,6 +91,123 @@ class TransportError(LabDevicesError):
     """
 
 
+# --- bridge-level discovery errors (parallel hierarchy) ---
+
+
+class ClientLookupError(Exception):
+    """Bridge-level discovery failure.
+
+    Distinct from LabDevicesError (which models HTTP errors from the
+    lab_devices_client service itself). Lookup errors come from the
+    lab-bridge roster endpoint, a different system.
+    """
+
+
+class ClientLookupEndpointUnreachable(ClientLookupError):
+    """Bridge endpoint refused the connection or timed out.
+
+    Typical cause: the caller is not on the docker `labnet` network.
+    Surfaced as a configuration error, not a generic ConnectionError.
+    """
+
+
+class ClientLookupEndpointError(ClientLookupError):
+    """Bridge returned 5xx, or the response body was missing/non-JSON/wrong shape."""
+
+
+class UnknownLabClient(ClientLookupError):
+    """Requested user name is not in the bridge roster."""
+
+    def __init__(self, name: str, available: list[str]):
+        self.name = name
+        self.available = available
+        super().__init__(f"unknown lab client {name!r}; available: {available}")
+
+
+# --- discovery helpers ---
+
+DEFAULT_DISCOVERY_URL = "http://siteapp:8000/api/clients/"
+DISCOVERY_URL_ENV_VAR = "LAB_DEVICES_DISCOVERY_URL"
+
+
+def _resolve_discovery_url(explicit: str | None) -> str:
+    """Resolve the discovery URL. Precedence: explicit arg > env var > default."""
+    if explicit is not None:
+        return explicit
+    return os.environ.get(DISCOVERY_URL_ENV_VAR, DEFAULT_DISCOVERY_URL)
+
+
+def _build_discovery_client(timeout: float) -> httpx.Client:
+    """Factory for the short-lived client used to fetch the bridge roster.
+
+    Module-level so tests can monkeypatch it to inject a MockTransport.
+    """
+    return httpx.Client(timeout=timeout)
+
+
+def _build_probe_client(host: str, port: int, timeout: float) -> httpx.Client:
+    """Factory for per-machine probe clients used by list_active_users.
+
+    Module-level so tests can monkeypatch it to inject a MockTransport.
+    """
+    return httpx.Client(base_url=f"http://{host}:{port}", timeout=timeout)
+
+
+def _fetch_roster(discovery_url: str, request_timeout_sec: float) -> dict[str, dict[str, Any]]:
+    """GET the bridge endpoint and return the parsed roster.
+
+    Raises ClientLookupEndpointUnreachable / ClientLookupEndpointError.
+    Does NOT raise UnknownLabClient — caller decides whether a missing
+    user is fatal (constructor) or just absent (listing).
+    """
+    with _build_discovery_client(request_timeout_sec) as client:
+        try:
+            response = client.get(discovery_url)
+        except (
+            httpx.ConnectError,
+            httpx.ConnectTimeout,
+            httpx.ReadTimeout,
+            httpx.WriteTimeout,
+            httpx.PoolTimeout,
+        ) as exc:
+            raise ClientLookupEndpointUnreachable(
+                f"discovery endpoint unreachable at {discovery_url}: {exc}"
+            ) from exc
+
+    if response.status_code != 200:
+        body_excerpt = response.text[:200]
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned status "
+            f"{response.status_code}: {body_excerpt}"
+        )
+
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned invalid JSON: {exc}"
+        ) from exc
+
+    if not isinstance(body, dict):
+        raise ClientLookupEndpointError(
+            f"discovery endpoint at {discovery_url} returned non-object body: "
+            f"{type(body).__name__}"
+        )
+
+    for name, entry in body.items():
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("host"), str)
+            or not isinstance(entry.get("port"), int)
+        ):
+            raise ClientLookupEndpointError(
+                f"discovery endpoint at {discovery_url} returned malformed entry "
+                f"for {name!r}: {entry!r}"
+            )
+
+    return body
+
+
 # --- error mapping ---
 
 _ERROR_CODE_TO_EXCEPTION: dict[tuple[int, str], type[LabDevicesError]] = {
@@ -115,10 +234,34 @@ class LabDevicesClient:
 
     def __init__(
         self,
-        port: int,
-        host: str = "chisel",
+        *,
+        port: int | None = None,
+        host: str | None = None,
+        user: str | None = None,
+        discovery_url: str | None = None,
         request_timeout_sec: float = 5.0,
     ):
+        if user is not None and port is not None:
+            raise TypeError("user= and port= are mutually exclusive")
+        if user is None and port is None:
+            raise TypeError("either user= or port= must be provided")
+        if user is not None and host is not None:
+            raise TypeError("host= cannot be combined with user=")
+        if port is not None and discovery_url is not None:
+            raise TypeError("discovery_url= cannot be combined with port=")
+
+        if user is not None:
+            url = _resolve_discovery_url(discovery_url)
+            roster = _fetch_roster(url, request_timeout_sec)
+            if user not in roster:
+                raise UnknownLabClient(name=user, available=sorted(roster.keys()))
+            entry = roster[user]
+            host = entry["host"]
+            port = entry["port"]
+        else:
+            if host is None:
+                host = "chisel"
+
         self.host = host
         self.port = port
         self._http = httpx.Client(
@@ -134,6 +277,74 @@ class LabDevicesClient:
 
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
+
+    @classmethod
+    def list_registered_users(
+        cls,
+        *,
+        discovery_url: str | None = None,
+        request_timeout_sec: float = 5.0,
+    ) -> list[str]:
+        """Return sorted names from the bridge roster — registered, regardless of connectivity.
+
+        Raises ClientLookupEndpointUnreachable / ClientLookupEndpointError on
+        bridge-level failures.
+        """
+        url = _resolve_discovery_url(discovery_url)
+        roster = _fetch_roster(url, request_timeout_sec)
+        return sorted(roster.keys())
+
+    @classmethod
+    def list_active_users(
+        cls,
+        *,
+        discovery_url: str | None = None,
+        request_timeout_sec: float = 5.0,
+        probe_timeout_sec: float = 2.0,
+        max_workers: int = 8,
+    ) -> list[str]:
+        """Return sorted names whose lab_devices_client endpoint currently answers.
+
+        Probes ``GET /devices`` against each registered machine in parallel
+        threads. Any HTTP response (2xx/4xx/5xx) counts as active; only
+        network-level failures count as inactive.
+
+        Bridge-level errors (ClientLookupEndpointUnreachable /
+        ClientLookupEndpointError) propagate to the caller. Per-probe
+        errors are swallowed.
+        """
+        url = _resolve_discovery_url(discovery_url)
+        roster = _fetch_roster(url, request_timeout_sec)
+        if not roster:
+            return []
+
+        def probe(item: tuple[str, dict[str, Any]]) -> str | None:
+            name, entry = item
+            try:
+                with _build_probe_client(
+                    entry["host"], entry["port"], probe_timeout_sec
+                ) as client:
+                    client.get("/devices")
+                return name
+            except (
+                httpx.ConnectError,
+                httpx.ConnectTimeout,
+                httpx.ReadTimeout,
+                httpx.WriteTimeout,
+                httpx.PoolTimeout,
+            ):
+                return None
+            except Exception as exc:  # noqa: BLE001 — swallow defensively so a future httpx upgrade can't silently mark machines inactive
+                logger.warning(
+                    f"probe to {name} ({entry['host']}:{entry['port']}) raised "
+                    f"unexpected error: {exc!r}"
+                )
+                return None
+
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            results = list(ex.map(probe, roster.items()))
+
+        return sorted(name for name in results if name is not None)
 
     def send_command(
         self,
