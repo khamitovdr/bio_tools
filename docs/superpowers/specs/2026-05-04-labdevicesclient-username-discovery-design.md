@@ -96,7 +96,7 @@ Precedence, highest to lowest:
 2. The `LAB_DEVICES_DISCOVERY_URL` environment variable.
 3. The default `"http://siteapp:8000/api/clients/"`.
 
-Resolution happens at construction time. There is no module-level constant to monkeypatch.
+Resolution happens at construction time. The default URL and env-var name are exposed as the module-level constants `DEFAULT_DISCOVERY_URL` and `DISCOVERY_URL_ENV_VAR` for readability; tests should override the URL via the `discovery_url=` argument or `monkeypatch.setenv(DISCOVERY_URL_ENV_VAR, ...)` rather than mutating those constants.
 
 ### `user=` flow
 
