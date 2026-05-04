@@ -1,7 +1,13 @@
 """Bridge-level client lookup behaviour for LabDevicesClient."""
 from __future__ import annotations
 
-from typing import Callable
+import json
+import socket
+import threading
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Callable, Iterator
+from urllib.parse import urlparse
 
 import httpx
 import pytest
@@ -483,3 +489,103 @@ def test_new_exceptions_are_re_exported_from_interfaces():
     assert ClientLookupEndpointUnreachable is ldc_mod.ClientLookupEndpointUnreachable
     assert ClientLookupEndpointError is ldc_mod.ClientLookupEndpointError
     assert UnknownLabClient is ldc_mod.UnknownLabClient
+
+
+def _make_handler_class(routes: dict[str, tuple[int, bytes, str]]):
+    """Build a BaseHTTPRequestHandler that serves a fixed routing table.
+
+    routes: path -> (status, body, content_type)
+    """
+
+    class _Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802 — required by stdlib
+            entry = routes.get(self.path)
+            if entry is None:
+                self.send_response(404)
+                self.end_headers()
+                return
+            status, body, content_type = entry
+            self.send_response(status)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args, **kwargs) -> None:  # silence test output
+            return
+
+    return _Handler
+
+
+@contextmanager
+def _serve(routes: dict[str, tuple[int, bytes, str]]) -> Iterator[str]:
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _make_handler_class(routes))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        host, port = server.server_address
+        yield f"http://{host}:{port}"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2.0)
+
+
+def _find_closed_port() -> int:
+    s = socket.socket()
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
+    s.close()
+    return port
+
+
+def test_integration_constructor_resolves_user_against_real_bridge():
+    roster = {"khamit_desktop": {"host": "127.0.0.1", "port": 9}}
+    bridge_routes = {
+        "/api/clients/": (200, json.dumps(roster).encode(), "application/json"),
+    }
+
+    with _serve(bridge_routes) as bridge_url:
+        client = LabDevicesClient(
+            user="khamit_desktop", discovery_url=f"{bridge_url}/api/clients/"
+        )
+        try:
+            assert client.host == "127.0.0.1"
+            assert client.port == 9
+        finally:
+            client.close()
+
+
+def test_integration_list_active_users_against_real_servers():
+    devices_response = json.dumps({"devices": [], "discovered_at": None}).encode()
+    devices_routes = {"/devices": (200, devices_response, "application/json")}
+
+    closed_port = _find_closed_port()
+
+    with _serve(devices_routes) as alive_url:
+        alive = urlparse(alive_url)
+        assert alive.hostname is not None and alive.port is not None
+
+        roster = {
+            "alive_machine": {"host": alive.hostname, "port": alive.port},
+            "dead_machine": {"host": "127.0.0.1", "port": closed_port},
+        }
+        bridge_routes = {
+            "/api/clients/": (200, json.dumps(roster).encode(), "application/json"),
+        }
+
+        with _serve(bridge_routes) as bridge_url:
+            active = LabDevicesClient.list_active_users(
+                discovery_url=f"{bridge_url}/api/clients/",
+                probe_timeout_sec=2.0,
+            )
+
+    assert active == ["alive_machine"]
+
+
+def test_integration_bridge_unreachable_raises_unreachable():
+    closed_port = _find_closed_port()
+    discovery_url = f"http://127.0.0.1:{closed_port}/api/clients/"
+
+    with pytest.raises(ClientLookupEndpointUnreachable):
+        LabDevicesClient(user="x", discovery_url=discovery_url, request_timeout_sec=2.0)
