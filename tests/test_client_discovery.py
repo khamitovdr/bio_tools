@@ -261,3 +261,29 @@ def test_constructor_with_port_path_unaffected():
         assert str(client._http.base_url) == "http://chisel:9001"
     finally:
         client.close()
+
+
+def test_constructor_user_and_port_are_mutually_exclusive():
+    with pytest.raises(TypeError, match="mutually exclusive"):
+        LabDevicesClient(user="x", port=9001)
+
+
+def test_constructor_requires_user_or_port():
+    with pytest.raises(TypeError, match="either user= or port="):
+        LabDevicesClient()
+
+
+def test_constructor_host_cannot_combine_with_user():
+    with pytest.raises(TypeError, match="host= cannot be combined with user="):
+        LabDevicesClient(user="x", host="other")
+
+
+def test_constructor_discovery_url_cannot_combine_with_port():
+    with pytest.raises(TypeError, match="discovery_url= cannot be combined with port="):
+        LabDevicesClient(port=9001, discovery_url="http://example/")
+
+
+def test_constructor_rejects_positional_port():
+    """The signature is keyword-only; positional args should be rejected."""
+    with pytest.raises(TypeError):
+        LabDevicesClient(9001)  # type: ignore[misc]
