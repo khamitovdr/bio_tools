@@ -172,3 +172,29 @@ def test_fetch_roster_wrong_typed_entry_raises_endpoint_error(mock_discovery):
 
     with pytest.raises(ldc_mod.ClientLookupEndpointError):
         ldc_mod._fetch_roster("http://siteapp:8000/api/clients/", request_timeout_sec=5.0)
+
+
+def test_resolve_discovery_url_returns_default_when_unset(monkeypatch):
+    monkeypatch.delenv(ldc_mod.DISCOVERY_URL_ENV_VAR, raising=False)
+    assert ldc_mod._resolve_discovery_url(None) == ldc_mod.DEFAULT_DISCOVERY_URL
+
+
+def test_resolve_discovery_url_uses_env_var(monkeypatch):
+    monkeypatch.setenv(ldc_mod.DISCOVERY_URL_ENV_VAR, "http://override.example/api/")
+    assert ldc_mod._resolve_discovery_url(None) == "http://override.example/api/"
+
+
+def test_resolve_discovery_url_explicit_arg_wins_over_env(monkeypatch):
+    monkeypatch.setenv(ldc_mod.DISCOVERY_URL_ENV_VAR, "http://env.example/api/")
+    assert (
+        ldc_mod._resolve_discovery_url("http://arg.example/api/")
+        == "http://arg.example/api/"
+    )
+
+
+def test_default_discovery_url_constant():
+    assert ldc_mod.DEFAULT_DISCOVERY_URL == "http://siteapp:8000/api/clients/"
+
+
+def test_discovery_url_env_var_constant():
+    assert ldc_mod.DISCOVERY_URL_ENV_VAR == "LAB_DEVICES_DISCOVERY_URL"

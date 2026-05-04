@@ -1,6 +1,7 @@
 """HTTP client for the lab_devices_client Go service."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -123,6 +124,16 @@ class UnknownLabClient(ClientLookupError):
 
 
 # --- discovery helpers ---
+
+DEFAULT_DISCOVERY_URL = "http://siteapp:8000/api/clients/"
+DISCOVERY_URL_ENV_VAR = "LAB_DEVICES_DISCOVERY_URL"
+
+
+def _resolve_discovery_url(explicit: str | None) -> str:
+    """Resolve the discovery URL. Precedence: explicit arg > env var > default."""
+    if explicit is not None:
+        return explicit
+    return os.environ.get(DISCOVERY_URL_ENV_VAR, DEFAULT_DISCOVERY_URL)
 
 
 def _build_discovery_client(timeout: float) -> httpx.Client:
