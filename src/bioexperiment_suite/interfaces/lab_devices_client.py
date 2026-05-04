@@ -334,7 +334,7 @@ class LabDevicesClient:
                 httpx.PoolTimeout,
             ):
                 return None
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001 — swallow defensively so a future httpx upgrade can't silently mark machines inactive
                 logger.warning(
                     f"probe to {name} ({entry['host']}:{entry['port']}) raised "
                     f"unexpected error: {exc!r}"

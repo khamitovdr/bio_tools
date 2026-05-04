@@ -70,7 +70,7 @@ class LabDevicesClient:
         self,
         *,
         port: int | None = None,
-        host: str = "chisel",
+        host: str | None = None,  # falls back to "chisel" inside the port= branch
         user: str | None = None,
         discovery_url: str | None = None,
         request_timeout_sec: float = 5.0,
