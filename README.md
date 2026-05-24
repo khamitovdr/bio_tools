@@ -46,6 +46,30 @@ Ensure you have the following installed on your machine:
 
 ## Usage
 
+### Connecting to your lab machine
+
+Lab machines are addressed by name. The client looks the name up in the lab-bridge roster and opens an HTTP session to that machine's `lab_devices_client` service:
+
+```python
+from bioexperiment_suite.interfaces import LabDevicesClient
+
+with LabDevicesClient(user="khamit_desktop") as client:
+    devices = client.discover()
+    (pump1, pump2) = devices.pumps
+    (densitometer,) = devices.densitometers
+```
+
+If you don't know which name to use, ask the bridge:
+
+```python
+LabDevicesClient.list_registered_users()  # every machine the bridge knows about
+LabDevicesClient.list_active_users()      # only the ones currently answering
+```
+
+Lookups go through `http://siteapp:8000/api/clients/` by default; override with the `LAB_DEVICES_DISCOVERY_URL` environment variable or the `discovery_url=` keyword argument when running outside the standard `labnet` setup.
+
+### Building an experiment
+
 For comprehensive usage examples, please see the [examples](examples) directory.
 
 ## License
