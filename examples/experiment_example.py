@@ -10,7 +10,7 @@ POURED_OUT_VOLUME_ML = 2  # Volume of solution poured out in mL
 INFUSED_VOLUME_ML = 1  # Volume of solution infused in mL
 FLOW_RATE_ML_PER_MINUTE = 3  # Flow rate of the pump in mL/min
 
-LAB_DEVICES_PORT = 9001  # Per-lab-machine chisel-tunnel port
+LAB_MACHINE = "khamit_desktop"  # Name from LabDevicesClient.list_registered_users()
 
 # Ensure intervals are valid
 assert (
@@ -29,7 +29,7 @@ n_measurements_per_solution_refresh = (
 )
 
 # Connect to the lab devices service and discover devices
-client = LabDevicesClient(port=LAB_DEVICES_PORT)
+client = LabDevicesClient(user=LAB_MACHINE)
 devices = client.discover()
 
 # Unpack discovered devices

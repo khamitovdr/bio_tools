@@ -21,7 +21,7 @@ PUMP_DRUG_VOLUME_ML = 2
 
 OPTICAL_DENSITY_THRESHOLD = 0.5
 
-LAB_DEVICES_PORT = 9001  # Per-lab-machine chisel-tunnel port
+LAB_MACHINE = "khamit_desktop"  # Name from LabDevicesClient.list_registered_users()
 
 # Define measurements
 OPTICAL_DENSITY = "optical_density"
@@ -51,7 +51,7 @@ delay_time = (PUMP_OUT_VOLUME_ML / FLOW_RATE_ML_PER_MINUTE) * 60 + 1 + INWARDS_P
 
 
 # Connect to the lab devices service and discover devices
-client = LabDevicesClient(port=LAB_DEVICES_PORT)
+client = LabDevicesClient(user=LAB_MACHINE)
 devices = client.discover()
 
 (densitometer,) = devices.densitometers  # Suppose we have one densitometer
